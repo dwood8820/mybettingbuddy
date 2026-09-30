@@ -320,6 +320,26 @@ button{font:inherit;color:inherit}
 .btnsm{border:0;background:var(--gold);color:#141414;font-weight:800;border-radius:8px;padding:8px 12px;cursor:pointer;font-size:13px}
 .btnsm.ghost{background:none;color:var(--soft);border:1px solid var(--line2)}
 .ppres{margin:8px 0 0;font-size:13.5px;color:var(--soft)}
+.hch{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px}.hch p{margin:0;color:var(--soft);font-size:14px}
+.hcseg button{display:inline-flex;align-items:center;gap:7px;padding:8px 18px;font-size:15px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}.hotd{background:#FF6B3D}.coldd{background:#3987E5}
+.hclist{padding:6px 0 4px;margin-top:0}
+.hchead,.hcrow{display:grid;grid-template-columns:26px minmax(0,1.7fr) 64px 64px 70px 118px 104px 56px 18px;gap:10px;align-items:center}
+.hchead{padding:6px 14px;font-size:10.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);font-weight:700;border-bottom:1px solid var(--line)}
+.hcrow{width:100%;background:none;border:0;border-bottom:1px solid var(--line);padding:9px 14px;color:var(--text);text-align:left;cursor:pointer;font:inherit}
+.hcrow:hover{background:var(--hover)}
+.hcn{color:var(--muted);font-size:13px}
+.hcrow .who{display:flex;align-items:center;gap:9px;min-width:0}.hcrow .who>span{display:flex;flex-direction:column;min-width:0}
+.hcrow .who b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hcrow .who span span{font-size:12px;color:var(--muted)}
+.hcv{display:flex;flex-direction:column;gap:1px}.hcv .lab{display:none;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.hcv b{font-size:15px}.hcv small{color:var(--muted);font-weight:500;font-size:11px}
+.hct{display:inline-block;margin-top:3px;font-size:10px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;border-radius:5px;padding:2px 6px;width:max-content}
+.hct.up{background:rgba(47,201,138,.16);color:var(--over)}.hct.dn{background:rgba(57,135,229,.18);color:#6FA8F0}.hct.eff{background:rgba(244,193,79,.14);color:var(--gold)}
+.spk{display:block}
+#hcChart svg{width:100%;height:auto;display:block;margin-top:8px}#hcChart .grid{stroke:var(--line);stroke-width:1}#hcChart .ax{fill:var(--muted);font-size:11px;font-family:var(--body)}
+@media (max-width:760px){.hchead{display:none}.hcv .lab{display:block}.hcs{display:none}
+  .hcrow{grid-template-columns:20px repeat(3,minmax(0,1fr)) 14px;grid-template-areas:"n w w w c" ". l b g ." ". r r d .";row-gap:10px;column-gap:10px}
+  .hcn{grid-area:n}.hcrow .who{grid-area:w}.hcrow .caret{grid-area:c}.hl{grid-area:l}.hb{grid-area:b}.hg{grid-area:g}.hcr{grid-area:r}.hcd{grid-area:d}}
 .ppsel{width:100%;background:var(--panel);color:var(--text);border:1px solid var(--line2);border-radius:8px;padding:8px;font:inherit;font-weight:600}
 .ppup{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
 .ppup>span:first-child{font-size:11px;color:var(--muted);width:100%}
@@ -559,6 +579,7 @@ const PAGES={
   ou_splicer:{t:"Over/Under Splicer",d:"Find scoring trends by week, game type, matchup, venue, spread and total."},
   ats_splicer:{t:"Spread Splicer",d:"Find against-the-spread trends by side, spread, rest, matchup and team."},
   prop_splicer:{t:"Player Prop Splicer",d:"See what a defense allows, game by game, to the top player at a position and to the whole offense."},
+  hotcold:{t:"Hot/Cold",d:"Players running above or below their norm: last few games vs the games before, and whether a bigger role is behind it."},
 };
 const YARDS=`<div class="yards" aria-hidden="true">${[10,20,30,40,50,40,30,20,10].map(n=>`<span>${n}</span>`).join("")}</div>`;
 function hero(eyebrow,title,sub){return `<section class="hero turf"><div class="eyebrow">${esc(eyebrow)}</div><h1 class="wk">${esc(title)}</h1><p class="hero-sub">${esc(sub)}</p>${YARDS}</section>`}
@@ -577,6 +598,7 @@ const TOOLS={
   ou_splicer:{name:"Over/Under Splicer",icon:'<path d="M3 12h18M7 6l-4 6 4 6M17 6l4 6-4 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'},
   ats_splicer:{name:"Spread Splicer",icon:'<path d="M4 18h16M6 18V9M12 18V5M18 18v-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'},
   prop_splicer:{name:"Player Prop Splicer",icon:'<circle cx="12" cy="7" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'},
+  hotcold:{name:"Hot/Cold",icon:'<path d="M12 3c1 3 4 5 4 9a4 4 0 0 1-8 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 0-8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>'},
 };
 function toolSeg(){return `<div class="tools" role="group" aria-label="Tool kit"><span class="tools-lab">Tools</span>${Object.entries(TOOLS).map(([k,t])=>
   `<button class="tool" data-v="${k}" aria-pressed="${state.view===k}"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">${t.icon}</svg>${t.name}</button>`).join("")}</div>`}
@@ -589,6 +611,7 @@ function renderTool(k){
   if(k==="ou_splicer")renderOU();
   if(k==="prop_splicer")renderPP();
   if(k==="ats_splicer")renderATS();
+  if(k==="hotcold")renderHC();
 }
 /* ---------- player prop splicer ---------- */
 const PPD=MBB.pp;
@@ -955,6 +978,112 @@ function wireATS(rs){
   if(hs){hs.addEventListener("mousemove",e=>{const r=e.target.closest("[data-i]");if(!r)return;const x=W[+r.dataset.i];
       showTip(`<b>${x.s} ${x.w<=18?"Week "+x.w:wkLab(x.w)}</b> · ${x.n} game${x.n>1?"s":""}<br>ATS <b>${x.R.w}-${x.R.l}-${x.R.p}</b> (${x.R.pct==null?"—":Math.round(x.R.pct*100)+"%"})<br>Avg margin <b>${sgn(x.mg)}</b> · spread expected <b>${sgn(x.exp)}</b>`,e)});
     hs.addEventListener("mouseleave",hideTip)}
+}
+
+/* ---------- hot/cold: recent form vs each player's prior games ---------- */
+const HC_STATS=PP_STATS.filter(m=>m.k!=="td");
+const HC={stat:"receiving_yards",pos:new Set(["WR","TE"]),win:3,side:"hot",open:null,panes:undefined};
+const HC_BASE=16, HC_MINBASE=6;
+const HC_FLOOR={rushing_yards:35,carries:8,receiving_yards:30,receptions:3,targets:4,rr:45,passing_yards:180,completions:15,attempts:25,passing_tds:1};
+const HC_OPP={rushing_yards:"carries",carries:"carries",rr:"touches",receiving_yards:"targets",receptions:"targets",targets:"targets",passing_yards:"attempts",completions:"attempts",attempts:"attempts",passing_tds:"attempts"};
+/* every player's games, oldest first, from the three-season history */
+const HC_LOG=(()=>{const L={};PPG.forEach(g=>g.rows.forEach(r=>{(L[r[0]]||=[]).push({g,r})}));
+  Object.values(L).forEach(a=>a.sort((x,y)=>x.g.s-y.g.s||x.g.w-y.g.w));return L})();
+const HC_CUR=Math.max(...PP_SEASONS);
+const HC_LASTWK=Math.max(...PPG.filter(g=>g.s===HC_CUR&&g.w<=18).map(g=>g.w));
+const oppOf=(r,k)=>k==="touches"?r[PPK.carries]+r[PPK.receptions]:r[PPK[k]];
+const defRankCache={};
+function defRank(def,m,pos){const key=m.k+"|"+[...pos].sort().join()+"|"+def;if(key in defRankCache)return defRankCache[key];
+  const val=ppVal(m),seasons=new Set([HC_CUR-1,HC_CUR]),by={};
+  PPG.forEach(g=>{if(!seasons.has(g.s))return;let top=null;g.rows.forEach(r=>{if(pos.has(PPD.p[r[0]][1])){const v=val(r);if(top==null||v>top)top=v}});if(top!=null)(by[g.def]||=[]).push(top)});
+  const avgs=Object.entries(by).map(([t,a])=>[t,avg(a)]);
+  avgs.forEach(([t,a])=>{defRankCache[m.k+"|"+[...pos].sort().join()+"|"+t]={r:avgs.filter(x=>x[1]>a).length+1,n:avgs.length}});
+  return defRankCache[key]||null}
+function hcRows(){const m=HC_STATS.find(x=>x.k===HC.stat),val=ppVal(m),ok=HC_OPP[m.k],floor=HC_FLOOR[m.k]??0;const out=[];
+  Object.entries(HC_LOG).forEach(([pi,games])=>{const p=PPD.p[pi];if(!HC.pos.has(p[1]))return;
+    const last=games.at(-1);if(last.g.s!==HC_CUR||last.g.w<HC_LASTWK-1)return;           // active this season, played recently
+    const team=last.g.off;if(!T[team])return;
+    const recent=games.slice(-HC.win),prior=games.slice(-HC.win-HC_BASE,-HC.win);
+    if(recent.length<HC.win||prior.length<HC_MINBASE)return;
+    const rv=recent.map(x=>val(x.r)),bv=prior.map(x=>val(x.r)),ra=avg(rv),ba=avg(bv);
+    if(ba<floor&&ra<floor)return;
+    const relevant=ra>=floor;const wasRelevant=ba>=floor;
+    const ro=avg(recent.map(x=>oppOf(x.r,ok))),bo=avg(prior.map(x=>oppOf(x.r,ok)));
+    const pct=ba>0?(ra-ba)/ba:(ra>0?1:0);
+    const sg=D.slate.find(g=>g.away===team||g.home===team);
+    out.push({pi:+pi,name:p[0],pos:p[1],team,ra,ba,relevant,wasRelevant,diff:ra-ba,pct,ro,bo,
+      role:bo>0?(ro-bo)/bo:0,spark:games.slice(-10).map(x=>({v:val(x.r),recent:recent.includes(x),s:x.g.s,w:x.g.w,opp:x.g.def,home:x.g.home})),
+      next:sg&&!sg.final?{opp:sg.away===team?sg.home:sg.away,home:sg.home===team,g:sg}:null})});
+  return {m,ok,rows:out}}
+function spark(s,ba){const w=110,h=30,vals=s.map(x=>x.v),hi=Math.max(...vals,ba,1),bw=w/s.length;
+  return `<svg class="spk" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" aria-hidden="true">${s.map((x,i)=>{const bh=Math.max(1.5,x.v/hi*(h-2));return `<rect x="${i*bw+1}" y="${h-bh}" width="${bw-2}" height="${bh}" rx="1.5" fill="${x.recent?"#3987E5":"var(--under)"}" opacity="${x.recent?1:.55}"/>`}).join("")}
+    <line x1="0" x2="${w}" y1="${h-ba/hi*(h-2)}" y2="${h-ba/hi*(h-2)}" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="3 2"/></svg>`}
+function renderHC(){
+  const body=$("#toolBody");
+  if(state.sport!=="nfl"){body.innerHTML=`<div class="empty ou-empty">Hot/Cold runs on NFL data for now. Switch to NFL to use it.</div>`;return}
+  const {m,ok,rows}=hcRows();const hot=HC.side==="hot";
+  const list=rows.filter(r=>hot?r.diff>0&&r.relevant:r.diff<0&&r.wasRelevant).sort((a,b)=>hot?b.diff-a.diff:a.diff-b.diff).slice(0,25);
+  const posTxt=[...HC.pos].join("/");const okLab=ok==="touches"?"Touches":ok[0].toUpperCase()+ok.slice(1);
+  const roleTag=r=>{if(Math.abs(r.role)>=.2)return `<span class="hct ${r.role>0?"up":"dn"}">Role ${r.role>0?"up":"down"}</span>`;return `<span class="hct eff">${hot?"Efficiency":"Efficiency"}</span>`};
+  const rowsHtml=list.map((r,i)=>{const dr=r.next?defRank(r.next.opp,m,new Set([r.pos])):null;const open=HC.open===r.pi;
+    return `<div class="prow-wrap${open?" open":""}"><button class="hcrow" data-pi="${r.pi}" aria-expanded="${open}">
+      <span class="hcn num">${i+1}</span>
+      <span class="who">${chip(r.team)}<span><b>${esc(r.name)}</b><span>${r.pos} · ${r.team}${r.next?` ${r.next.home?"vs":"@"} ${r.next.opp}`:""}</span></span></span>
+      <span class="hcv hl"><span class="lab">Last ${HC.win}</span><b class="num">${fx(r.ra)}</b></span>
+      <span class="hcv hb"><span class="lab">Before</span><b class="num">${fx(r.ba)}</b></span>
+      <span class="hcv hg"><span class="lab">Change</span><b class="num ${r.diff>0?"ov":"un2"}">${sgn(r.diff)}</b><small class="num">${r.pct>=0?"+":"−"}${Math.round(Math.abs(r.pct)*100)}%</small></span>
+      <span class="hcs">${spark(r.spark,r.ba)}</span>
+      <span class="hcv hcr"><span class="lab">${okLab}/g</span><b class="num">${fx(r.bo)}→${fx(r.ro)}</b>${roleTag(r)}</span>
+      <span class="hcv hcd"><span class="lab">Next D</span><b class="num">${dr?`${dr.r}<small>/${dr.n}</small>`:"—"}</b></span>
+      <span class="caret" aria-hidden="true">${open?"−":"+"}</span></button>
+      ${open?`<div class="pexp" id="hcx"></div>`:""}</div>`}).join("");
+  body.innerHTML=`<div class="ouwrap">
+    <details class="oupane" id="hcPane"${HC.panes??innerWidth>900?" open":""}><summary>Filters</summary>
+      <fieldset class="oug"><legend>Stat</legend><div class="oucs">${HC_STATS.map(x=>`<button class="ouc" data-stat="${x.k}" aria-pressed="${x.k===HC.stat}">${esc(x.l)}</button>`).join("")}</div></fieldset>
+      <fieldset class="oug"><legend>Position</legend><div class="oucs">${PP_POS.map(([v,l])=>`<button class="ouc" data-pos="${v}" aria-pressed="${HC.pos.has(v)}">${l}</button>`).join("")}</div></fieldset>
+      <fieldset class="oug"><legend>Recent window</legend><div class="oucs">${[3,5].map(n=>`<button class="ouc" data-win="${n}" aria-pressed="${HC.win===n}">Last ${n} games</button>`).join("")}</div></fieldset>
+    </details>
+    <div class="oumain">
+      <div class="hch">
+        <div class="seg hcseg" role="group" aria-label="Hot or cold"><button data-side="hot" aria-pressed="${hot}"><i class="dot hotd"></i>Hot</button><button data-side="cold" aria-pressed="${!hot}"><i class="dot coldd"></i>Cold</button></div>
+        <p>${esc(posTxt)} ${hot?"running above":"running below"} their norm in <b>${esc(m.l)}</b>: last ${HC.win} games vs the ${HC_BASE} games before that, ranked by the change per game.</p>
+      </div>
+      <div class="oucard hclist">
+        <div class="hchead"><span>#</span><span>Player</span><span>Last ${HC.win}</span><span>Before</span><span>Change</span><span>Last 10 games</span><span>${okLab}/g</span><span>Next D</span><span></span></div>
+        ${rowsHtml||`<div class="empty">No players ${hot?"running hot":"running cold"} for this stat yet.</div>`}
+      </div>
+      <p class="oufoot">"Before" is the player's average over the ${HC_BASE} games before his last ${HC.win}, including last season, so early-season numbers still have a real baseline. Players need at least ${HC_MINBASE} earlier games, a game in the last two weeks, and enough volume to have a prop line (hot players must average ${fx(HC_FLOOR[m.k])}+ lately; cold players must have averaged that before). "Role up" means his ${okLab.toLowerCase()} per game rose 20% or more, which tends to last; "Efficiency" means the jump came from doing more with the same chances, which tends to cool off. "Next D" ranks his next opponent from 1 (allows the least to his position) to 32 (the most), over this season and last. Stats from nflverse.</p>
+    </div></div>`;
+  body.querySelector(".ouwrap").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const d=b.dataset;
+    if(d.stat){if(d.stat!==HC.stat){HC.stat=d.stat;HC.pos=new Set(HC_STATS.find(x=>x.k===d.stat).pos.map(p=>p==="WR"?["WR","TE"]:[p]).flat());HC.open=null}}
+    else if(d.pos){HC.pos.has(d.pos)?HC.pos.size>1&&HC.pos.delete(d.pos):HC.pos.add(d.pos);HC.open=null}
+    else if(d.win){HC.win=+d.win;HC.open=null}
+    else if(d.side){HC.side=d.side;HC.open=null}
+    else if(d.pi){HC.open=HC.open===+d.pi?null:+d.pi}
+    else return;renderHC()});
+  $("#hcPane").addEventListener("toggle",e=>{HC.panes=e.target.open});
+  if(HC.open!=null){const r=list.find(x=>x.pi===HC.open);if(r)hcChart(r,m);else HC.open=null}
+}
+function hcChart(r,m){
+  const box=$("#hcx");const val=ppVal(m);const games=HC_LOG[r.pi].slice(-(HC.win+HC_BASE));
+  const W=games.map(x=>({s:x.g.s,w:x.g.w,v:val(x.r),opp:x.g.def,home:x.g.home,recent:games.indexOf(x)>=games.length-HC.win}));
+  const sm=innerWidth<600,w=sm?440:860,h=sm?250:260,L=40,Rr=14,B=30,n=W.length,band=(w-L-Rr)/n,T0=multiSeason(W)&&band>=12?32:14;
+  let hi=Math.max(...W.map(x=>x.v),r.ba,r.ra)*1.1,lo=0;const st=hi>200?50:hi>80?20:hi>30?10:hi>10?2:1;hi=Math.ceil(hi/st)*st;
+  const y=v=>T0+(h-T0-B)*(1-(v-lo)/(hi-lo||1)),cx=i=>L+band*i+band/2;
+  let s="";for(let v=lo;v<=hi;v+=st)s+=`<line x1="${L}" x2="${w-Rr}" y1="${y(v)}" y2="${y(v)}" class="grid"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" class="ax">${v}</text>`;
+  const bw=Math.max(3,band*.62);
+  W.forEach((x,i)=>{s+=`<rect x="${cx(i)-bw/2}" y="${y(x.v)}" width="${bw}" height="${Math.max(1,y(0)-y(x.v))}" rx="3" fill="${x.recent?"#3987E5":"var(--under)"}" opacity="${x.recent?1:.8}"/>`});
+  s+=seasonMarks(W,L,band,T0,h,B);
+  let lastX=-99;W.forEach((x,i)=>{if(cx(i)-lastX>=(sm?30:26)){lastX=cx(i);s+=`<text x="${cx(i)}" y="${h-10}" text-anchor="middle" class="ax">${wkLab(x.w)}</text>`}});
+  const x0=L+band*(n-HC.win);
+  s+=`<line x1="${L}" x2="${x0}" y1="${y(r.ba)}" y2="${y(r.ba)}" stroke="var(--accent)" stroke-width="2" stroke-dasharray="6 5"/>`;
+  s+=`<line x1="${x0}" x2="${w-Rr}" y1="${y(r.ra)}" y2="${y(r.ra)}" stroke="var(--text)" stroke-width="2" stroke-dasharray="6 5"/>`;
+  s+=`<g class="hits">${W.map((x,i)=>`<rect x="${L+band*i}" y="${T0}" width="${band}" height="${h-T0-B}" fill="transparent" data-i="${i}"/>`).join("")}</g>`;
+  box.innerHTML=`<div class="legend"><span><i style="background:var(--under)"></i>Earlier games</span><span><i style="background:#3987E5"></i>Last ${HC.win}</span><span><i class="ln dash" style="border-color:var(--accent)"></i>Before avg (${fx(r.ba)})</span><span><i class="ln dash" style="border-color:var(--text)"></i>Last ${HC.win} avg (${fx(r.ra)})</span></div>
+    <div class="chart" id="hcChart"><svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(r.name)} ${esc(m.l)} by game">${s}</svg></div>`;
+  box.querySelector(".hits").addEventListener("mousemove",e=>{const t=e.target.closest("[data-i]");if(!t)return;const x=W[+t.dataset.i];
+    showTip(`<b>${x.s} ${x.w<=18?"Week "+x.w:wkLab(x.w)}</b> · ${x.home?"vs":"@"} ${x.opp}<br>${esc(m.l)} <b>${fx(x.v)}</b>`,e)});
+  box.querySelector(".hits").addEventListener("mouseleave",hideTip);
 }
 
 /* ---------- splits ---------- */
