@@ -1,0 +1,37 @@
+name: Refresh data
+
+on:
+  schedule:
+    - cron: "17 */3 * * *"   # every 3 hours
+  workflow_dispatch:          # "Run workflow" button for an on-demand refresh
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-data
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pandas==2.2.3
+      - name: Build data files
+        run: python scripts/build_data.py --out out
+      - name: Publish to the data branch
+        run: |
+          cd out
+          git init -q -b data
+          git config user.name "mybettingbuddy-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "Data refresh $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -qf "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" data
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
