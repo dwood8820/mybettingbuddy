@@ -3,11 +3,23 @@
 // never in the page, so visitors can't see or use it.
 //
 // Credits: listing events is free; each game's anytime-TD odds cost 1 credit (1 market x 1 region).
-// Netlify's CDN caches every game's response for CACHE_HOURS, so a game is fetched at most
-// once per window no matter how many people look at it. 16 games x 1 fetch/day ~ 480 credits/month,
-// which fits the free 500. Lower CACHE_HOURS for fresher odds once you're on a paid plan.
+// Netlify's CDN caches each game's response and shares it with every visitor, so a game is only
+// fetched when its cached copy expires. How long a copy lives depends on how close kickoff is:
+//   more than a day out  -> until 24h before kickoff (at most 3 days)  TD odds barely move early in the week
+//   within the last day  -> until 2h before kickoff                    catches injury news
+//   final 2 hours        -> until kickoff                              catches inactives
+// That is about 3 fetches per game per week (~200 credits/month for a full slate).
 
-const CACHE_HOURS = Number(Netlify.env.get("CACHE_HOURS") || 24);
+const HOUR = 3600;
+function cacheSecondsFor(commenceTime) {
+  const toKick = (new Date(commenceTime).getTime() - Date.now()) / 1000;
+  if (!(toKick > 0)) return 6 * HOUR; // game started or time unknown
+  let until;
+  if (toKick > 24 * HOUR) until = Math.min(toKick - 24 * HOUR, 72 * HOUR);
+  else if (toKick > 2 * HOUR) until = toKick - 2 * HOUR;
+  else until = toKick;
+  return Math.max(15 * 60, Math.round(until)); // never less than 15 minutes
+}
 const SPORT_KEYS = { nfl: "americanfootball_nfl", ncaaf: "americanfootball_ncaaf" };
 const apiFor = (sport) => `https://api.the-odds-api.com/v4/sports/${SPORT_KEYS[sport]}`;
 
@@ -85,7 +97,7 @@ export default async (req) => {
       players,
     },
     200,
-    CACHE_HOURS * 3600
+    cacheSecondsFor(ev.commence_time)
   );
 };
 
