@@ -45,7 +45,7 @@ button{font:inherit;color:inherit}
 .navtab:hover{color:var(--soft)}
 .navtab[aria-current="page"]{color:var(--text);border-bottom-color:var(--accent)}
 .navdiv{width:1px;height:22px;background:var(--line2);flex:none;margin:0 8px}
-.navlab{font-size:10.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin:0 4px 0 2px}
+.navlab{font-size:10.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin:0 4px 0 2px;white-space:nowrap;flex:none}
 .hero{margin-bottom:16px;padding:22px 22px 48px}
 .eyebrow{font-size:11.5px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:#CFE8D8;opacity:.85}
 .hero .wk{font-size:34px;line-height:1.1;margin:4px 0}
@@ -546,7 +546,7 @@ function render(){renderSports();renderNav();hideTip();
   if(!LIVE.includes(state.sport))return renderUC();
     const games=D.slate;
   const P=PAGES[state.view]||PAGES.games;
-  $("#main").innerHTML=hero(`${state.sport.toUpperCase()} · ${TOOLS[state.view]?"Toolbox":"Week "+D.week}`,P.t,P.d)+`<div id="view"></div>`;
+  $("#main").innerHTML=hero(`${state.sport.toUpperCase()} · ${TOOLS[state.view]?"Build a Graph":"Week "+D.week}`,P.t,P.d)+`<div id="view"></div>`;
   if(TOOLS[state.view])return renderTool(state.view);
   state.view==="players"?renderPlayers():renderGames();
 }
@@ -566,8 +566,8 @@ function renderNav(){const nav=$("#mainnav");
   if(!LIVE.includes(state.sport)){nav.innerHTML="";nav.parentElement.hidden=true;return}nav.parentElement.hidden=false;
   const tab=(k,l,icon)=>`<button class="navtab" data-v="${k}" aria-current="${state.view===k?"page":"false"}">${icon?`<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">${icon}</svg>`:""}${l}</button>`;
   nav.innerHTML=`<div class="navgrp"><span class="navlab">Matchups</span>${tab("games","Spreads")}${tab("totals","O/U")}${tab("players","Player Props")}</div>
-    <span class="navdiv" aria-hidden="true"></span><div class="navgrp"><span class="navlab">Tools</span>${Object.entries(TOOLS).map(([k,t])=>tab(k,t.name,t.icon)).join("")}</div>`;
-  const cur=nav.querySelector('[aria-current="page"]');if(cur){const g=cur.parentElement;if(g.scrollWidth>g.clientWidth)g.scrollLeft=Math.max(0,cur.offsetLeft-g.offsetLeft-40)}
+    <span class="navdiv" aria-hidden="true"></span><div class="navgrp"><span class="navlab">Build a Graph</span>${Object.entries(TOOLS).map(([k,t])=>tab(k,t.name,t.icon)).join("")}</div>`;
+  const cur=nav.querySelector('[aria-current="page"]');if(cur){const g=cur.parentElement;const over=cur.offsetLeft-g.offsetLeft+cur.offsetWidth-g.clientWidth;g.scrollLeft=over>0?over+16:0}
 }
 $("#mainnav").addEventListener("click",e=>{const b=e.target.closest("[data-v]");if(!b||b.dataset.v===state.view)return;state.view=b.dataset.v;
   if(state.view==="players"&&state.game)state.pgame=state.game;if(state.view!=="players"&&state.pgame)state.game=state.pgame;render();scrollTo({top:0})});
