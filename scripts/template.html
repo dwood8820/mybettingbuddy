@@ -285,6 +285,10 @@ button{font:inherit;color:inherit}
 .rink.light{border-color:#A9BAC6;background:radial-gradient(120% 160% at 50% 50%,#D9E3EA,#BCCAD5)}
 .rink.light::after{background:repeating-linear-gradient(115deg,rgba(90,120,145,.09) 0 2px,transparent 2px 9px)}
 .surf.light .wk{color:#141414;text-shadow:none;background:rgba(255,255,255,.82);padding:2px 12px;border-radius:9px;display:inline-block}
+.court.mid{border-color:#7A5530;background:repeating-linear-gradient(90deg,#A77B4B 0 38px,#9C7143 38px 76px,#AE8352 76px 114px)}
+.court.mid::after{background:repeating-linear-gradient(0deg,rgba(60,35,12,.14) 0 1px,transparent 1px 11px)}
+.hero.court.mid .eyebrow{color:#FFF3E2;opacity:.95}
+.hero.court.mid .hero-sub{color:#FFF6EA}
 .court-art{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
 .hero.court .eyebrow,.hero.court .hero-sub{text-shadow:0 1px 6px rgba(0,0,0,.6)}
 .hero.court.light .eyebrow{color:#3A230F;opacity:1;text-shadow:none}
@@ -1456,8 +1460,8 @@ const COURT=`<svg class="court-art" viewBox="0 0 1000 200" preserveAspectRatio="
   <rect x="866" y="64" width="128" height="72"/><circle cx="866" cy="100" r="36"/><path d="M994 20h-70a160 80 0 0 0 0 160h70"/></g></svg>`;
 const BANNERS={
   ncaaf:()=>hero("NCAAF · College football","NCAAF","College football is coming soon to MyBettingBuddy."),
-  nba:()=>`<section class="hero surf court light">${COURT}<div class="eyebrow">NBA · Pro basketball</div><h1 class="wk">NBA</h1><p class="hero-sub">Pro basketball is coming soon to MyBettingBuddy.</p></section>`,
-  ncaab:()=>`<section class="hero surf court">${COURT}<div class="eyebrow">NCAAB · College basketball</div><h1 class="wk">NCAAB</h1><p class="hero-sub">College basketball is coming soon to MyBettingBuddy.</p></section>`,
+  nba:()=>`<section class="hero surf court mid">${COURT}<div class="eyebrow">NBA · Pro basketball</div><h1 class="wk">NBA</h1><p class="hero-sub">Pro basketball is coming soon to MyBettingBuddy.</p></section>`,
+  ncaab:()=>`<section class="hero surf court mid">${COURT}<div class="eyebrow">NCAAB · College basketball</div><h1 class="wk">NCAAB</h1><p class="hero-sub">College basketball is coming soon to MyBettingBuddy.</p></section>`,
 };
 function sportBanner(k){return (BANNERS[k]||BANNERS.ncaaf)()}
 function renderUC(){const [name,desc]=UC[state.sport];
