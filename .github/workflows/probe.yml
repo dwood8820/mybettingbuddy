@@ -7,9 +7,10 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
-      - run: python probe/probe.py
+      - run: python scripts/build_ncaaf.py --out pout --cache https://raw.githubusercontent.com/dwood8820/mybettingbuddy/probe-out/ncaaf_lines.json
       - run: |
           cd pout && git init -q -b probe-out && git config user.name bot && git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A && git commit -qm probe && git push -qf "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" probe-out
