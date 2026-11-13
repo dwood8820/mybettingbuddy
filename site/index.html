@@ -1221,22 +1221,18 @@ function renderGameDetail(){
   const ou=state.view==="totals",mode=state.ouMode||"game",isGame=ou&&mode==="game";
   const ab=state.team,side=ab===g.home?1:0;
   const S=isGame?gameTotalView(g):(ou?totalSide:teamSide)(ab,ab===g.home?g.spread:-g.spread,g);
-  const sw=t=>`<button role="tab" data-t="${t}" aria-selected="${t===ab}">${chip(t)}<span class="nm">${esc(T[t].nick)}</span></button>`;
   const mseg=ou?`<div class="seg mseg" role="group" aria-label="Total type"><button data-ou="game" aria-pressed="${mode==="game"}">Game Total</button><button data-ou="team" aria-pressed="${mode==="team"}">Team Total</button></div>`:"";
   $("#detail").innerHTML=`<div class="panel">
     ${matchHead(g,!isGame)}
-    <div class="ctlbar${ou?" ou3":""}">${mseg}${isGame?"":`<div class="tswitch" role="tablist" aria-label="Team" data-side="${side}"><span class="thumb" aria-hidden="true"></span>${sw(g.away)}${sw(g.home)}</div>`}</div>
+    ${ou?`<div class="ctlbar ou3">${mseg}</div>`:""}
     <div class="two">${S.html}</div>
   </div>`;
   const sec=$("#detail section.side");const c=sec.querySelector(".c-line svg");
   if(c)wireLine(sec.querySelector(".c-line"),S.games,S.series,S.line??S.exp,S.opt,xFor(S.games.length));onCtl(sec,renderGameDetail);
   $("#detail").querySelectorAll("[data-ou]").forEach(b=>b.addEventListener("click",()=>{state.ouMode=b.dataset.ou;renderGameDetail()}));
-  const pick=t=>{if(t===state.team)return;state.team=t;
-    // slide the thumb first, then swap the chart
-    const s=$(".tswitch");s.dataset.side=t===g.home?"1":"0";s.querySelectorAll("button").forEach(b=>b.setAttribute("aria-selected",b.dataset.t===t));
-    setTimeout(()=>{renderGameDetail();document.querySelectorAll(".rail .team").forEach(el=>el.classList.toggle("on",el.closest(".gc").dataset.g===g.id&&el.dataset.t===t))},matchMedia("(prefers-reduced-motion:reduce)").matches?0:220)};
-  if(!isGame){$(".tswitch").addEventListener("click",e=>{const b=e.target.closest("[data-t]");if(b)pick(b.dataset.t)});
-    $(".match-head").addEventListener("click",e=>{const b=e.target.closest("[data-t]");if(b)pick(b.dataset.t)})}
+  const pick=t=>{if(t===state.team)return;state.team=t;renderGameDetail();
+    document.querySelectorAll(".rail .team").forEach(el=>el.classList.toggle("on",el.closest(".gc").dataset.g===g.id&&el.dataset.t===t))};
+  if(!isGame)$(".match-head").addEventListener("click",e=>{const b=e.target.closest("[data-t]");if(b)pick(b.dataset.t)});
 }
 
 /* ---------- players ---------- */
