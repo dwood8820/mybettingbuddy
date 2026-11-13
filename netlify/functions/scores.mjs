@@ -1,12 +1,17 @@
-// Live NFL scores for this week's games, from ESPN's public scoreboard.
-// Netlify's CDN caches the response for 60 seconds, so every visitor shares one lookup a minute.
-const ESPN = "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard";
-const ABBR = { WSH: "WAS", LAR: "LA" }; // ESPN -> nflverse team codes
+// Live scores for this week's games, from ESPN's public scoreboard: ?sport=nfl (default) or ?sport=ncaaf (FBS).
+// Netlify's CDN caches each sport's response for 60 seconds, so every visitor shares one lookup a minute.
+const ESPN = {
+  nfl: "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard",
+  ncaaf: "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=300",
+};
+const NFL_ABBR = { WSH: "WAS", LAR: "LA" }; // ESPN -> nflverse team codes
 
-export default async () => {
+export default async (req) => {
+  const sport = new URL(req.url).searchParams.get("sport") === "ncaaf" ? "ncaaf" : "nfl";
+  const ABBR = sport === "nfl" ? NFL_ABBR : {};
   let d;
   try {
-    const r = await fetch(ESPN, { headers: { "user-agent": "mybettingbuddy" } });
+    const r = await fetch(ESPN[sport], { headers: { "user-agent": "mybettingbuddy" } });
     if (!r.ok) throw new Error(String(r.status));
     d = await r.json();
   } catch (e) {
@@ -29,6 +34,7 @@ export default async () => {
       "content-type": "application/json",
       "cache-control": "public, max-age=30",
       "netlify-cdn-cache-control": "public, durable, s-maxage=60, stale-while-revalidate=30",
+      "netlify-vary": "query=sport",
     },
   });
 };

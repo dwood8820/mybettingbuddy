@@ -18,7 +18,9 @@ if len(sys.argv) > 1 and sys.argv[1] == "--preview":
     for key, f in (("td", "td_snapshot.json"), ("wx", "wx_snapshot.json")):
         p = os.path.join(src, f)
         extra[key] = open(p).read() if os.path.exists(p) else "{}"
-    embed = '{"nfl":%s,"ou":%s,"pp":%s,"td":%s,"wx":%s}' % (rd("nfl.json"), rd("ou_hist.json"), rd("pp_hist.json"), extra["td"], extra["wx"])
+    opt = lambda f: rd(f) if os.path.exists(os.path.join(src, f)) else "null"
+    embed = '{"nfl":%s,"ou":%s,"pp":%s,"ncaaf":%s,"td":%s,"wx":%s,"files":{"ncaaf_ou_hist.json":%s}}' % (
+        rd("nfl.json"), rd("ou_hist.json"), rd("pp_hist.json"), opt("ncaaf.json"), extra["td"], extra["wx"], opt("ncaaf_ou_hist.json"))
     out = t.replace("__EMBED__", embed).replace("__DATA_BASE__", "")
 else:
     dest = os.path.join(ROOT, "site", "index.html")

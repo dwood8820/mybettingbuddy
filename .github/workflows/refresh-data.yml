@@ -4,6 +4,9 @@ on:
   schedule:
     - cron: "17 */3 * * *"   # every 3 hours
   workflow_dispatch:          # "Run workflow" button for an on-demand refresh
+  push:                       # rebuild right away when a data builder changes
+    branches: [main]
+    paths: ["scripts/build_data.py", "scripts/build_ncaaf.py", ".github/workflows/refresh-data.yml"]
 
 permissions:
   contents: write
@@ -15,15 +18,17 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       - run: pip install pandas==2.2.3
-      - name: Build data files
+      - name: Build NFL data files
         run: python scripts/build_data.py --out out
+      - name: Build NCAAF data files
+        run: python scripts/build_ncaaf.py --out out --cache "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/data/ncaaf_lines.json"
       - name: Publish to the data branch
         run: |
           cd out

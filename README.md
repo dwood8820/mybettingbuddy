@@ -7,7 +7,8 @@ plus the O/U, Spread and Player Prop Splicers.
 
 | What | Where it comes from | How often |
 |---|---|---|
-| Schedule, lines, scores, team + player stats, splicer history | nflverse, built by `scripts/build_data.py` | GitHub Actions every 3 hours → `data` branch |
+| NFL schedule, lines, scores, team + player stats, graph history | nflverse, built by `scripts/build_data.py` | GitHub Actions every 3 hours → `data` branch |
+| NCAAF (FBS) schedule, scores, DraftKings lines, weather, graph history since 2015 | ESPN, built by `scripts/build_ncaaf.py` (past closing lines cached in `ncaaf_lines.json`) | same job |
 | Live scores and game clock | ESPN scoreboard via `netlify/functions/scores.mjs` | every minute during games |
 | Anytime TD odds | The Odds API via `netlify/functions/td-odds.mjs` | cached by time to kickoff: until 24h before, then until 2h before, then until kickoff (~3 credits per game per week) |
 | Weather | Open-Meteo, straight from the browser | on page load |
