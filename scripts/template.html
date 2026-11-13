@@ -52,7 +52,7 @@ button{font:inherit;color:inherit}
 .hero .wk{font-size:34px;line-height:1.1;margin:4px 0}
 .hero-sub{margin:0;max-width:640px;color:#DDEBE2;font-size:14.5px;text-shadow:0 1px 6px rgba(0,0,0,.5)}
 .toolpage .ouwrap{margin-top:0}
-@media (max-width:560px){.top-in{gap:8px;flex-wrap:nowrap}.brand{font-size:17px;gap:6px}.brand .mark{width:24px;height:24px}.brand .mark svg{width:20px;height:20px}.league .soon{font-size:7.5px;margin-left:2px}.sport{padding:4px 8px;font-size:13px}.hero{padding:16px 16px 40px}.mainnav{flex-wrap:wrap;gap:0}.navdiv{display:none}.navgrp{width:100%;overflow-x:auto;scrollbar-width:none}.navgrp+.navdiv+.navgrp{border-top:1px solid var(--line)}.hero .wk{font-size:28px}.navtab{padding:10px 7px 8px;font-size:14px;gap:5px}.navtab svg{display:none}.navlab{margin-right:2px}}
+@media (max-width:560px){.top-in{gap:8px 10px;flex-wrap:wrap;padding-bottom:8px}.league{width:100%;margin-left:0;display:grid;grid-template-columns:repeat(4,1fr)}.brand{font-size:17px;gap:6px}.brand .mark{width:24px;height:24px}.brand .mark svg{width:20px;height:20px}.league .soon{font-size:7.5px;margin-left:2px}.sport{padding:4px 8px;font-size:13px}.hero{padding:16px 16px 40px}.mainnav{flex-wrap:wrap;gap:0}.navdiv{display:none}.navgrp{width:100%;overflow-x:auto;scrollbar-width:none}.navgrp+.navdiv+.navgrp{border-top:1px solid var(--line)}.hero .wk{font-size:28px}.navtab{padding:10px 7px 8px;font-size:14px;gap:5px}.navtab svg{display:none}.navlab{margin-right:2px}}
 
 .sport .soon{font-family:var(--body);font-size:9.5px;font-weight:700;letter-spacing:.6px;color:var(--gold);vertical-align:super;margin-left:3px}
 
@@ -284,7 +284,13 @@ button{font:inherit;color:inherit}
 .court.light::after{background:repeating-linear-gradient(0deg,rgba(90,55,20,.12) 0 1px,transparent 1px 11px)}
 .rink.light{border-color:#A9BAC6;background:radial-gradient(120% 160% at 50% 50%,#D9E3EA,#BCCAD5)}
 .rink.light::after{background:repeating-linear-gradient(115deg,rgba(90,120,145,.09) 0 2px,transparent 2px 9px)}
-.surf.light .wk{color:#141414;text-shadow:none;background:rgba(255,255,255,.82);padding:2px 12px;border-radius:9px}
+.surf.light .wk{color:#141414;text-shadow:none;background:rgba(255,255,255,.82);padding:2px 12px;border-radius:9px;display:inline-block}
+.court-art{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.hero.court .eyebrow,.hero.court .hero-sub{text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.hero.court.light .eyebrow{color:#3A230F;opacity:1;text-shadow:none}
+.hero.court.light .hero-sub{color:#2A1A0C;text-shadow:none;background:rgba(255,255,255,.6);display:table;padding:3px 10px;border-radius:8px;margin-top:6px}
+.hero.court.light .wk{display:table}
+.hero.court.light .court-art g{stroke:rgba(255,255,255,.8)}
 .multi{border:1px solid #333;background:#111}
 .multi-art{position:absolute!important;inset:0;z-index:0!important;display:grid;grid-template-columns:repeat(4,1fr);pointer-events:none}
 .multi-art > div{position:relative;overflow:hidden}
@@ -522,7 +528,7 @@ window.startApp=function(MBB){
 const DATA={nfl:MBB.nfl,ncaaf:MBB.ncaaf||null};
 const LIVE=["nfl"];           // sports with real data; the rest show the under-construction screen
 let D=DATA.nfl, T=D.teams;
-const SPORTS=[["nfl","NFL"],["ncaaf","NCAAF"]];
+const SPORTS=[["nfl","NFL"],["ncaaf","NCAAF"],["nba","NBA"],["ncaab","NCAAB"]];
 const state={sport:"nfl",view:"games",game:null,player:null,pos:"ALL",q:"",gameFilter:"ALL",market:null,line:null};
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -1439,8 +1445,21 @@ function renderPropChart(p,m,g,odds){
 }
 
 /* ---------- under construction ---------- */
-const UC={ncaaf:["NCAAF","College football spreads vs point differential and player props, built on the same week-by-week charts as the NFL tab."]};
-function sportBanner(k){return hero("NCAAF · College football","NCAAF","College football is coming soon to MyBettingBuddy.")}
+const UC={
+  ncaaf:["NCAAF","College football spreads vs point differential and player props, built on the same week-by-week charts as the NFL tab."],
+  nba:["NBA","NBA spreads, totals and player props next to each team's and player's game-by-game results."],
+  ncaab:["NCAAB","College basketball spreads and totals next to each team's game-by-game results."],
+};
+const COURT=`<svg class="court-art" viewBox="0 0 1000 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g fill="none" stroke="rgba(255,255,255,.55)" stroke-width="3">
+  <rect x="6" y="6" width="988" height="188"/><path d="M500 6v188"/><circle cx="500" cy="100" r="34"/><circle cx="500" cy="100" r="9" fill="rgba(255,255,255,.35)"/>
+  <rect x="6" y="64" width="128" height="72"/><circle cx="134" cy="100" r="36"/><path d="M6 20h70a160 80 0 0 1 0 160H6"/>
+  <rect x="866" y="64" width="128" height="72"/><circle cx="866" cy="100" r="36"/><path d="M994 20h-70a160 80 0 0 0 0 160h70"/></g></svg>`;
+const BANNERS={
+  ncaaf:()=>hero("NCAAF · College football","NCAAF","College football is coming soon to MyBettingBuddy."),
+  nba:()=>`<section class="hero surf court light">${COURT}<div class="eyebrow">NBA · Pro basketball</div><h1 class="wk">NBA</h1><p class="hero-sub">Pro basketball is coming soon to MyBettingBuddy.</p></section>`,
+  ncaab:()=>`<section class="hero surf court">${COURT}<div class="eyebrow">NCAAB · College basketball</div><h1 class="wk">NCAAB</h1><p class="hero-sub">College basketball is coming soon to MyBettingBuddy.</p></section>`,
+};
+function sportBanner(k){return (BANNERS[k]||BANNERS.ncaaf)()}
 function renderUC(){const [name,desc]=UC[state.sport];
   $("#main").innerHTML=sportBanner(state.sport)+`<div class="uc">
     <div class="scene" aria-hidden="true"><svg viewBox="0 0 420 230">
