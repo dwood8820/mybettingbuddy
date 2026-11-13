@@ -51,7 +51,7 @@ button{font:inherit;color:inherit}
 .hero .wk{font-size:34px;line-height:1.1;margin:4px 0}
 .hero-sub{margin:0;max-width:640px;color:#DDEBE2;font-size:14.5px;text-shadow:0 1px 6px rgba(0,0,0,.5)}
 .toolpage .ouwrap{margin-top:0}
-@media (max-width:560px){.top-in{gap:8px;flex-wrap:nowrap}.brand{font-size:17px;gap:6px}.brand .mark{width:24px;height:24px}.league .soon{font-size:7.5px;margin-left:2px}.sport{padding:4px 8px;font-size:13px}.hero{padding:16px 16px 40px}.mainnav{flex-wrap:wrap;gap:0}.navdiv{display:none}.navgrp{width:100%;overflow-x:auto;scrollbar-width:none}.navgrp+.navdiv+.navgrp{border-top:1px solid var(--line)}.hero .wk{font-size:28px}.navtab{padding:10px 9px 8px;font-size:14px}}
+@media (max-width:560px){.top-in{gap:8px;flex-wrap:nowrap}.brand{font-size:17px;gap:6px}.brand .mark{width:24px;height:24px}.league .soon{font-size:7.5px;margin-left:2px}.sport{padding:4px 8px;font-size:13px}.hero{padding:16px 16px 40px}.mainnav{flex-wrap:wrap;gap:0}.navdiv{display:none}.navgrp{width:100%;overflow-x:auto;scrollbar-width:none}.navgrp+.navdiv+.navgrp{border-top:1px solid var(--line)}.hero .wk{font-size:28px}.navtab{padding:10px 7px 8px;font-size:14px;gap:5px}.navtab svg{display:none}.navlab{margin-right:2px}}
 
 .sport .soon{font-family:var(--body);font-size:9.5px;font-weight:700;letter-spacing:.6px;color:var(--gold);vertical-align:super;margin-left:3px}
 
@@ -556,9 +556,9 @@ const PAGES={
   games:{t:"Spreads",d:"Every game's spread next to each team's point differential, week by week."},
   totals:{t:"O/U",d:"Game totals and team totals next to how many points each side scores and allows."},
   players:{t:"Player Props",d:"Prop lines next to each player's weekly results, split by home, away, wins and losses."},
-  ou_splicer:{t:"Over/Under Splicer",d:"Find scoring trends by week, game type, matchup, venue, spread and total."},
-  ats_splicer:{t:"Spread Splicer",d:"Find against-the-spread trends by side, spread, rest, matchup and team."},
-  prop_splicer:{t:"Player Prop Splicer",d:"See what a defense allows, game by game, to the top player at a position and to the whole offense."},
+  ou_splicer:{t:"Over/Under",d:"Find scoring trends by week, game type, matchup, venue, spread and total."},
+  ats_splicer:{t:"Spread",d:"Find against-the-spread trends by side, spread, rest, matchup and team."},
+  prop_splicer:{t:"Player Prop",d:"See what a defense allows, game by game, to the top player at a position and to the whole offense."},
 };
 const YARDS=`<div class="yards" aria-hidden="true">${[10,20,30,40,50,40,30,20,10].map(n=>`<span>${n}</span>`).join("")}</div>`;
 function hero(eyebrow,title,sub){return `<section class="hero turf"><div class="eyebrow">${esc(eyebrow)}</div><h1 class="wk">${esc(title)}</h1><p class="hero-sub">${esc(sub)}</p>${YARDS}</section>`}
@@ -574,9 +574,9 @@ $("#mainnav").addEventListener("click",e=>{const b=e.target.closest("[data-v]");
 
 /* ---------- tool kit (football) ---------- */
 const TOOLS={
-  ou_splicer:{name:"Over/Under Splicer",icon:'<path d="M3 12h18M7 6l-4 6 4 6M17 6l4 6-4 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'},
-  ats_splicer:{name:"Spread Splicer",icon:'<path d="M4 18h16M6 18V9M12 18V5M18 18v-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'},
-  prop_splicer:{name:"Player Prop Splicer",icon:'<circle cx="12" cy="7" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'},
+  ou_splicer:{name:"Over/Under",icon:'<path d="M3 12h18M7 6l-4 6 4 6M17 6l4 6-4 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'},
+  ats_splicer:{name:"Spread",icon:'<path d="M4 18h16M6 18V9M12 18V5M18 18v-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'},
+  prop_splicer:{name:"Player Prop",icon:'<circle cx="12" cy="7" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'},
 };
 function toolSeg(){return `<div class="tools" role="group" aria-label="Tool kit"><span class="tools-lab">Tools</span>${Object.entries(TOOLS).map(([k,t])=>
   `<button class="tool" data-v="${k}" aria-pressed="${state.view===k}"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">${t.icon}</svg>${t.name}</button>`).join("")}</div>`}
@@ -614,7 +614,7 @@ function ppSummarize(gs,m){const val=ppVal(m);
     return {g,team,lead:lead||{v:0,name:"—",pos:""}}})}
 function renderPP(){
   const body=$("#toolBody");
-  if(state.sport!=="nfl"){body.innerHTML=`<div class="empty ou-empty">The Player Prop Splicer runs on NFL data for now. Switch to NFL to use it.</div>`;return}
+  if(state.sport!=="nfl"){body.innerHTML=`<div class="empty ou-empty">The Player Prop graph runs on NFL data for now. Switch to NFL to use it.</div>`;return}
   ppDefault();
   const m=PP_STATS.find(x=>x.k===PP.stat);const val=ppVal(m);
   const S=ppSummarize(ppGames(PP.def),m);
@@ -740,7 +740,7 @@ function ouRec(gs){let o=0,u=0,p=0;gs.forEach(g=>g.pts>g.tl?o++:g.pts<g.tl?u++:p
 const pct=(a,b)=>b?Math.round(a/b*100)+"%":"—";
 function renderOU(){
   const body=$("#toolBody");
-  if(state.sport!=="nfl"){body.innerHTML=`<div class="empty ou-empty">The Over/Under Splicer runs on NFL history for now. There's no free source of historical college pregame lines, so NCAAF trends would be guesses. Switch to NFL to use it.</div>`;return}
+  if(state.sport!=="nfl"){body.innerHTML=`<div class="empty ou-empty">The Over/Under graph runs on NFL history for now. There's no free source of historical college pregame lines, so NCAAF trends would be guesses. Switch to NFL to use it.</div>`;return}
   const gs=ouFiltered();const R=ouRec(gs);
   const avgPts=avg(gs.map(g=>g.pts)),avgTl=avg(gs.map(g=>g.tl));
   const chips=(k,opts,sel)=>opts.map(([v,l])=>{const n=k==="season"?OUH.filter(g=>g.s===+v).length:null;return `<button class="ouc" data-k="${k}" data-val="${v}" aria-pressed="${sel.has(k==="season"?+v:v)}">${esc(l)}</button>`}).join("");
@@ -868,7 +868,7 @@ function atsFiltered(skip){const persp=atsPerspective();
 function atsRec(rs){let w=0,l=0,p=0;rs.forEach(r=>r.ats>0?w++:r.ats<0?l++:p++);return {w,l,p,n:rs.length,pct:w+l?w/(w+l):null,u:w*100/110-l}}
 function renderATS(){
   const body=$("#toolBody");
-  if(state.sport!=="nfl"){body.innerHTML=`<div class="empty ou-empty">The Spread Splicer runs on NFL history for now. Switch to NFL to use it.</div>`;return}
+  if(state.sport!=="nfl"){body.innerHTML=`<div class="empty ou-empty">The Spread graph runs on NFL history for now. Switch to NFL to use it.</div>`;return}
   const rs=atsFiltered();const R=atsRec(rs);const su=rs.filter(r=>r.mg>0).length,sul=rs.filter(r=>r.mg<0).length;
   const counts=f=>{const base=atsFiltered(f.k);return Object.fromEntries(f.o.map(([v])=>[v,base.filter(r=>f.of(r)===v).length]))};
   const pane=ATS_F.map(f=>{const c=counts(f);const S=ATS.f[f.k];return `<fieldset class="oug"><legend>${f.l}${S.size?`<button class="ouclr" data-clr="${f.k}">Clear</button>`:""}</legend>
