@@ -6,7 +6,7 @@ on:
   workflow_dispatch:          # "Run workflow" button for an on-demand refresh
   push:                       # rebuild right away when a data builder changes
     branches: [main]
-    paths: ["scripts/build_data.py", "scripts/build_ncaaf.py", "scripts/build_nba.py", "scripts/build_ncaab.py", ".github/workflows/refresh-data.yml"]
+    paths: ["scripts/build_data.py", "scripts/build_ncaaf.py", "scripts/build_nba.py", "scripts/build_ncaab.py", "scripts/espn_moves.py", ".github/workflows/refresh-data.yml"]
 
 permissions:
   contents: write

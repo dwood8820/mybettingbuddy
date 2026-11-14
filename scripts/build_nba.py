@@ -13,6 +13,9 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 import pandas as pd
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from espn_moves import add_moves  # opening vs current lines
+
 REL = "https://github.com/sportsdataverse/sportsdataverse-data/releases/download"
 SITE = "https://site.api.espn.com/apis/site/v2/sports/basketball/nba"
 CORE = "https://sports.core.api.espn.com/v2/sports/basketball/leagues/nba"
@@ -270,6 +273,7 @@ def main():
     pp = {"p": plist, "g": sorted(out.values(), key=lambda x: (x[0], x[1], x[3])),
           "k": ["points", "rebounds", "assists", "threes", "steals", "blocks", "minutes"]}
 
+    add_moves("nba", slate)
     cur_json = {"sport": "nba", "season": season, "week": label or "", "weekLabel": label,
                 "updated": now.strftime("%b %-d, %Y %-I:%M %p ET"), "teams": teams, "tg": tg, "slate": slate,
                 "pkeys": ["wk", "lbl", "opp", "home", "res", "points", "rebounds", "assists", "threes", "steals", "blocks", "minutes"],

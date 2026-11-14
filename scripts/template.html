@@ -107,6 +107,13 @@ button{font:inherit;color:inherit}
 #detail{min-width:0}
 @media (min-width:1400px){:root{--maxw:1580px}.grid.g3{grid-template-columns:330px minmax(0,1fr) 290px}}
 @media (min-width:901px) and (max-width:1399px){.grid.g3 #news{grid-column:2}}
+.mvrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;padding:9px 18px;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--muted);background:rgba(255,255,255,.015)}
+.mvrow .mv-h{font-size:10.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gold)}
+.mvrow em{font-style:normal;color:var(--soft);font-weight:600;margin-right:3px}
+.mvrow b{color:var(--text);font-weight:600}
+.mvrow .mv-d{font-size:11.5px;margin-left:2px}
+.mvrow .moved .mv-d{color:var(--gold)}
+@media (max-width:600px){.mvrow{padding:8px 12px;gap:4px 12px}.mvrow .mv-h{width:100%}}
 .news{min-width:0;white-space:normal;overflow-wrap:anywhere}
 @media (min-width:1400px){.news{position:sticky;top:116px;max-height:calc(100vh - 132px);overflow:auto;scrollbar-width:thin}}
 .news .panel{padding:14px 14px 10px}
@@ -1588,7 +1595,23 @@ function matchHead(g,pick){
       <span class="at">@</span>
       ${mt(g.home)}${chip(g.home)}<div><div class="t">${esc(T[g.home].nick)}${g.final?` <span class="num">${g.hs}</span>`:""}</div><div class="s">${esc(T[g.home].name)}</div></div>${me}
       <div class="mh-lines"><span class="pill">${statusTxt(g)}</span>${g.spread==null?"":`<span class="pill">Spread <b class="num">${fav} ${lineTxt(-Math.abs(g.spread))}</b></span><span class="pill">Total <b class="num">${fx(g.total)}</b></span>`}</div>
-    </div>`;
+    </div>${moveRow(g)}`;
+}
+/* line movement: where the line opened vs where it is now (ESPN / DraftKings), shown until kickoff */
+function moveRow(g){
+  const m=g.mv;if(!m||g.final)return"";
+  const sideTxt=v=>v==null?"—":v===0?"PK":`${v>0?g.home:g.away} ${lineTxt(-Math.abs(v))}`;
+  const arrow=(a,b)=>a==null||b==null||a===b?"":b>a?"▲":"▼";
+  const parts=[];
+  if(m.so!=null&&m.sc!=null){const d=m.sc-m.so;
+    const toward=d===0?"no move":`${fx(Math.abs(d))} pt${Math.abs(d)===1?"":"s"} toward ${d>0?g.home:g.away}`;
+    parts.push(`<span class="mv-i${d?" moved":""}"><em>Spread</em> opened <b class="num">${sideTxt(m.so)}</b> → now <b class="num">${sideTxt(m.sc)}</b> <span class="mv-d">${toward}</span></span>`)}
+  if(m.to!=null&&m.tc!=null){const d=m.tc-m.to;
+    parts.push(`<span class="mv-i${d?" moved":""}"><em>Total</em> opened <b class="num">${fx(m.to)}</b> → now <b class="num">${fx(m.tc)}</b> <span class="mv-d">${d?arrow(m.to,m.tc)+" "+fx(Math.abs(d)):"no move"}</span></span>`)}
+  if(m.hmo!=null&&m.hmc!=null&&(m.hmo!==m.hmc||m.amo!==m.amc)){
+    parts.push(`<span class="mv-i moved"><em>ML</em> <b class="num">${g.home} ${ml(m.hmo)}</b> → <b class="num">${ml(m.hmc)}</b></span>`)}
+  if(!parts.length)return"";
+  return `<div class="mvrow" title="Opening line vs the current line at DraftKings, via ESPN. Movement shows until the game starts."><span class="mv-h">Line move</span>${parts.join("")}</div>`;
 }
 function renderPlayers(){
   if(!state.pgame){const w=pickWanted();state.pgame=w?w.g.id:(D.slate.find(g=>!g.final)||D.slate[0]).id}
@@ -1735,7 +1758,8 @@ loadWeather();
 function applyScores(list,sp){let changed=false;
   list.forEach(e=>{const g=DATA[sp].slate.find(x=>x.away===e.away&&x.home===e.home);if(!g||g.final&&e.state!=="post")return;
     const fin=e.state==="post",clock=e.state==="in"?e.detail:null,as=e.state==="pre"?g.as:e.as,hs=e.state==="pre"?g.hs:e.hs;
-    if(g.final!==fin||g.clock!==clock||g.as!==as||g.hs!==hs){Object.assign(g,{final:fin,clock,as,hs});changed=true}});
+    if(g.final!==fin||g.clock!==clock||g.as!==as||g.hs!==hs){Object.assign(g,{final:fin,clock,as,hs});changed=true}
+    if(e.mv&&JSON.stringify(e.mv)!==JSON.stringify(g.mv)){g.mv=e.mv;changed=true}});
   const busy=document.activeElement&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName);
   if(changed&&!busy&&state.sport===sp&&!TOOLS[state.view])render();}
 function scoresFor(sp){if(MBB.embedded)return;fetch("/api/scores?sport="+sp).then(r=>r.ok?r.json():null).then(d=>{if(d&&d.games)applyScores(d.games,sp)}).catch(()=>{})}

@@ -11,6 +11,9 @@ import argparse, json, os, sys, time, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone, timedelta
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from espn_moves import add_moves  # opening vs current lines
+
 SITE = "https://site.api.espn.com/apis/site/v2/sports/football/college-football"
 CORE = "https://sports.core.api.espn.com/v2/sports/football/leagues/college-football"
 FBS_CONF = {"1": "ACC", "4": "Big 12", "5": "Big Ten", "8": "SEC", "9": "Pac-12", "12": "C-USA", "15": "MAC",
@@ -208,6 +211,7 @@ def main():
                       "spread": ln.get("spread"), "total": ln.get("total"), "aml": ln.get("aml"), "hml": ln.get("hml")})
 
     nowet = to_et(now.strftime("%Y-%m-%dT%H:%M"))
+    add_moves("ncaaf", slate)
     cur_json = {"sport": "ncaaf", "season": season, "week": cw_key[1] if cw_key[0] == 2 else "Bowls",
                 "updated": nowet.strftime("%b %-d, %Y %-I:%M %p ET"), "teams": teams, "tg": tg, "slate": slate, "players": []}
 

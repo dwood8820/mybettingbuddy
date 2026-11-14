@@ -8,7 +8,11 @@ Writes three JSON files to --out (default: out/):
 Run by GitHub Actions on a schedule; also runnable locally:  python scripts/build_data.py --out out
 """
 import argparse, io, json, math, os, urllib.request
+import sys
 import pandas as pd
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from espn_moves import add_moves  # opening vs current lines
 
 GAMES_URL = "https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv"
 TEAMS_URL = "https://github.com/nflverse/nflverse-data/releases/download/teams/teams_colors_logos.csv"
@@ -75,6 +79,7 @@ def build_current(games, teams, pw, season):
                        's': {k: (float(getattr(r, k)) if not pd.isna(getattr(r, k)) else 0.0) for k in KEYS}})
         if gl:
             players.append({'id': pid, 'name': d.player_display_name.iloc[-1], 'team': d.team.iloc[-1], 'pos': d.position.iloc[0], 'g': gl})
+    add_moves('nfl', slate, key='espn')
     now = pd.Timestamp.now(tz='America/New_York')
     return {'season': season, 'week': cw, 'updated': now.strftime('%b %-d, %Y %-I:%M %p ET'), 'updatedISO': now.isoformat(),
             'teams': TEAMS, 'tg': tg, 'slate': slate, 'players': players}

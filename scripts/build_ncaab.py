@@ -12,6 +12,9 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 import pandas as pd
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from espn_moves import add_moves  # opening vs current lines
+
 REL = "https://github.com/sportsdataverse/sportsdataverse-data/releases/download/espn_mens_college_basketball_team_boxscores"
 SITE = "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball"
 CORE = "https://sports.core.api.espn.com/v2/sports/basketball/leagues/mens-college-basketball"
@@ -262,6 +265,7 @@ def main():
         g["aconf"], g["hconf"] = teams[g["away"]]["conf"], teams[g["home"]]["conf"]
     teams = {k: v for k, v in teams.items() if k in tg or any(g["away"] == k or g["home"] == k for g in slate) or v["conf"]}
 
+    add_moves("ncaab", slate)
     cur_json = {"sport": "ncaab", "season": season, "week": label, "weekLabel": label,
                 "updated": now.strftime("%b %-d, %Y %-I:%M %p ET"), "teams": teams, "tg": tg, "slate": slate, "players": []}
     for name, obj in (("ncaab.json", cur_json), ("ncaab_ou_hist.json", rows)):
