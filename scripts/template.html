@@ -240,6 +240,7 @@ button{font:inherit;color:inherit}
 
 .chart .xh{stroke:var(--line2);stroke-width:1}
 .chart .endl{font:700 12px var(--body);fill:var(--soft)}
+@media (max-width:599px){.chart .endl{font-size:11px}.chart .axl{font-size:11.5px}}
 .ctl{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font-size:12.5px;color:var(--soft);margin:6px 0 4px}
 .ctl i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-2px;flex:none}
 .ctl i.dl{height:0;width:16px;border-top:2px dashed var(--gold);border-radius:0;vertical-align:3px}
@@ -581,6 +582,7 @@ let D=DATA.nfl, T=D.teams;
 const SPORTS=[["nfl","NFL"],["ncaaf","NCAAF"],["nba","NBA"],["ncaab","NCAAB"]];
 const state={sport:"nfl",view:"games",game:null,player:null,pos:"ALL",q:"",gameFilter:"ALL",market:null,line:null};
 const $=s=>document.querySelector(s);
+let _phone=innerWidth<600;addEventListener("resize",()=>{const p=innerWidth<600;if(p!==_phone){_phone=p;try{render()}catch(_){}}});
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const sgn=(v,d=1)=>v==null||isNaN(v)?"—":(v>0?"+":v<0?"−":"")+Math.abs(v).toFixed(d).replace(/\.0$/,"");
 const lineTxt=v=>v===0?"PK":sgn(v);
@@ -758,7 +760,7 @@ function renderPP(){
 function ppChart(S,gl){
   if(!S.length)return `<div class="empty">No games match these filters</div>`;
   const W=S.map(x=>({s:x.g.s,w:x.g.w,team:x.team,lead:x.lead.v}));const leadAvg=avg(W.map(x=>x.lead));
-  const sm=innerWidth<600,w=sm?440:860,h=sm?280:300,L=40,Rr=14,B=30,n=W.length,band=(w-L-Rr)/n;const T0=multiSeason(W)&&band>=12?32:14;
+  const sm=innerWidth<600,w=sm?440:860,h=sm?360:300,L=40,Rr=14,B=30,n=W.length,band=(w-L-Rr)/n;const T0=multiSeason(W)&&band>=12?32:14;
   const q=(a,p)=>{const s=a.slice().sort((x,y)=>x-y);return s[Math.min(s.length-1,Math.floor(p*(s.length-1)))]};
   const lineTop=Math.max(...W.map(x=>x.lead),leadAvg??0,PP.line??0);
   let hi=Math.max(lineTop*1.08,q(W.map(x=>x.team),.9)*1.08,1),lo=Math.min(0,...W.map(x=>x.lead));
@@ -864,7 +866,7 @@ const multiSeason=W=>new Set(W.map(x=>x.s)).size>1;
 function ouWeeks(gs){return bySW(gs).map(({s,w,items})=>({s,w,gs:items,pts:avg(items.map(g=>g.pts)),tl:avg(items.map(g=>g.tl)),r:ouRec(items)}))}
 function ouChart(gs,mean){
   const W=ouWeeks(gs);if(!W.length)return `<div class="empty">No games match these filters</div>`;
-  const sm=innerWidth<600,w=sm?440:860,h=sm?280:300,L=34,Rr=14,T=multiSeason(W)&&(w-L-Rr)/W.length>=12?32:14,B=30;const n=W.length;const band=(w-L-Rr)/n;
+  const sm=innerWidth<600,w=sm?440:860,h=sm?360:300,L=34,Rr=14,T=multiSeason(W)&&(w-L-Rr)/W.length>=12?32:14,B=30;const n=W.length;const band=(w-L-Rr)/n;
   const vals=W.flatMap(x=>[x.pts,x.tl]);let lo=Math.min(...vals,mean),hi=Math.max(...vals,mean);
   lo=Math.max(0,Math.floor((lo-6)/5)*5);hi=Math.ceil((hi+4)/5)*5;
   const y=v=>T+(h-T-B)*(1-(v-lo)/(hi-lo));const cx=i=>L+band*i+band/2;
@@ -1046,7 +1048,7 @@ ${any?`<button class="oureset">Reset all filters</button>`:""}
 function atsWeeks(rs){return bySW(rs).map(({s,w,items})=>{const R=atsRec(items);return {s,w,R,n:items.length,mg:avg(items.map(r=>r.mg)),exp:avg(items.map(r=>-r.line))}})}
 function atsChart(rs,R){
   const W=atsWeeks(rs);if(!W.length)return `<div class="empty">No games match these filters</div>`;
-  const sm=innerWidth<600,w=sm?440:860,h=sm?280:300,L=40,Rr=14,T0=multiSeason(W)&&(w-L-Rr)/W.length>=12?32:14,B=30,n=W.length,band=(w-L-Rr)/n;const cx=i=>L+band*i+band/2;
+  const sm=innerWidth<600,w=sm?440:860,h=sm?360:300,L=40,Rr=14,T0=multiSeason(W)&&(w-L-Rr)/W.length>=12?32:14,B=30,n=W.length,band=(w-L-Rr)/n;const cx=i=>L+band*i+band/2;
   let lo,hi,y,s="";const cover=ATS.chart==="cover";
   if(cover){lo=0;hi=100}else{const v=W.flatMap(x=>[x.mg,x.exp,0]);lo=Math.floor((Math.min(...v)-2)/5)*5;hi=Math.ceil((Math.max(...v)+2)/5)*5}
   y=v=>T0+(h-T0-B)*(1-(v-lo)/(hi-lo||1));const st=cover?25:(hi-lo>40?10:5);
@@ -1181,8 +1183,10 @@ function buildSeries(games,val,wl,ha){
     {k:"ha",name:ha==="H"?"At home":"On the road",color:COL.ha,w:2,vals:runAvg(games,val,g=>ha==="H"?g.home:!g.home)},
   ];
 }
+const PHONE=()=>innerWidth<600;
+const LG=()=>PHONE()?{W:380,H:330,L:32,R:138}:{W:620,H:270,L:44,R:150}; // phones get a narrower, taller chart so text stays readable
 function lineChart(games,series,line,opt={}){
-  const W=620,H=270,L=44,R=150,Tp=18,B=42;
+  const {W,H,L,R}=LG(),Tp=18,B=42;
   const all=series.flatMap(s=>s.vals).concat(line==null?[]:[line]).filter(v=>v!=null);
   const dmin=Math.min(...all);let lo=dmin,hi=Math.max(...all);if(opt.signed){lo=Math.min(lo,0);hi=Math.max(hi,0)}
   if(hi===lo){hi=lo+1;lo=Math.max(0,lo-1)}const pad=(hi-lo)*.12;hi+=pad;lo-=pad;
@@ -1194,7 +1198,7 @@ function lineChart(games,series,line,opt={}){
   const f=v=>opt.signed?sgn(v):fx(v);
   let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opt.aria||"chart")}">`;
   ticks.forEach(t=>{s+=`<line class="${t===0&&opt.signed?"zero":"grid"}" x1="${L}" x2="${W-R}" y1="${y(t)}" y2="${y(t)}"/><text class="ax num" x="${L-8}" y="${y(t)+4}" text-anchor="end">${opt.signed?sgn(t,0):fx(t,0)}</text>`});
-  const every=Math.max(1,Math.ceil(n/16));games.forEach((g,i)=>{if((n-1-i)%every)return;s+=`<text class="axl" x="${x(i)}" y="${H-B+18}" text-anchor="middle">${g.lbl||"W"+g.wk}</text><text class="n" x="${x(i)}" y="${H-B+32}" text-anchor="middle">${opt.sub?opt.sub(g):(g.home?"vs":"@")+" "+g.opp}</text>`});
+  const every=Math.max(1,Math.ceil(n/(PHONE()?6:16)));games.forEach((g,i)=>{if((n-1-i)%every)return;s+=`<text class="axl" x="${x(i)}" y="${H-B+18}" text-anchor="middle">${g.lbl||"W"+g.wk}</text><text class="n" x="${x(i)}" y="${H-B+32}" text-anchor="middle">${opt.sub?opt.sub(g):(g.home?"vs":"@")+" "+g.opp}</text>`});
   s+=`<line class="xh" x1="0" x2="0" y1="${Tp}" y2="${H-B}" visibility="hidden"/>`;
   // end labels, de-collided
   const ends=[];
@@ -1227,7 +1231,7 @@ function wireLine(root,games,series,line,opt,xfn){
         (line!=null?`<br><span class="mut">${opt.lineName||"Line"} ${f(line)}${opt.gameLine?" · "+opt.gameLine(g):""}</span>`:""),e)};
     r.addEventListener("mousemove",show);r.addEventListener("click",show);r.addEventListener("mouseleave",()=>{hideTip();xh.setAttribute("visibility","hidden")})});
 }
-function xFor(n){const W=620,L=44,R=150,pw=W-L-R;return i=>n===1?L+pw/2:L+18+(pw-36)*i/(n-1)}
+function xFor(n){const {W,L,R}=LG(),pw=W-L-R;return i=>n===1?L+pw/2:L+18+(pw-36)*i/(n-1)}
 function controls(key,s,defWL,defHA){
   const b=(grp,v,lab,c)=>`<button data-k="${key}" data-g="${grp}" data-v="${v}" aria-pressed="${s[grp]===v}">${lab}${(grp==="wl"?defWL:defHA)===v?' <span class="def">'+(UNIT()==="game"?"tonight":"this week")+'</span>':""}</button>`;
   return `<div class="ctl">
@@ -1289,8 +1293,8 @@ function gameTotalView(g){
     <span class="tg"><i style="background:${COL.ha}"></i><span class="seg2">${b("ha","H","At these venues")}${b("ha","A","Venues swapped")}</span></span>
     <span class="lg"><i class="dl"></i>Game Total</span></div>`;
   const opt={lineName:"O/U",aria:"Projected game total by "+UNIT(),sub:x=>"",
-    head:(x,i)=>`<b>Through week ${x.wk}</b>`};
-  const xg=weeks.map(w=>({wk:w}));
+    head:(x,i)=>`<b>Through ${UNIT()} ${x.wk}</b>`};
+  const xg=weeks.map(w=>({wk:w,lbl:(UNIT()==="game"?"G":"W")+w}));
   return {games:xg,series,line,opt,html:`<section class="side" data-team="game">
     <div class="side-h">${chip(g.away)}${chip(g.home)}<h3>${esc(T[g.away].nick)} + ${esc(T[g.home].nick)} scoring</h3><span class="tag fav">Game total ${f2(line)}</span></div>
     <div class="rec"><span>${esc(T[g.away].nick)} PPG <b class="num">${fx(avg(A.map(x=>x.pf)))}</b></span><span>${esc(T[g.home].nick)} PPG <b class="num">${fx(avg(H.map(x=>x.pf)))}</b></span><span>Favorite <b>${esc(T[fav].nick)}</b></span></div>
