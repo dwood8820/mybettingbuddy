@@ -583,16 +583,16 @@ table.log td.r,table.log th.r{text-align:right}
     <div class="gate-mark" aria-hidden="true" id="gateMark">21+</div>
     <h2 id="gateTitle">Confirm your age</h2>
     <p id="gateText">MyBettingBuddy covers sports betting odds and lines. You must be of legal betting age where you live: 21 in most states, 18 in a few.</p>
-    <form class="gate-form" id="gateForm" novalidate>
+    <div class="gate-form" id="gateForm">
       <label class="gf"><span>Where are you?</span><select id="gateState" required><option value="">Choose your state</option></select></label>
       <fieldset class="gf"><legend>Date of birth</legend><div class="dob">
         <input id="dobM" inputmode="numeric" autocomplete="bday-month" placeholder="MM" maxlength="2" aria-label="Birth month">
         <input id="dobD" inputmode="numeric" autocomplete="bday-day" placeholder="DD" maxlength="2" aria-label="Birth day">
         <input id="dobY" inputmode="numeric" autocomplete="bday-year" placeholder="YYYY" maxlength="4" aria-label="Birth year"></div></fieldset>
       <p class="gate-err" id="gateErr" role="alert" hidden></p>
-      <button class="btn" id="gateGo" type="submit">Continue</button>
+      <button class="btn" id="gateGo" type="button">Continue</button>
       <p class="gate-priv">Your answers stay in this browser. Nothing is sent or stored on our servers.</p>
-    </form>
+    </div>
     <div class="gate-btns" id="gateBtns" hidden><button class="btn" id="gateOk" type="button">Got it, continue</button></div>
     <p class="gate-fine">By continuing you agree to our <button class="linkbtn" id="gateTerms" type="button">Terms &amp; Disclaimers</button>. Gambling problem? Call or text 1-800-GAMBLER.</p>
   </div>
@@ -1838,7 +1838,9 @@ loadWeather();
   const err=m=>{$("#gateErr").textContent=m;$("#gateErr").hidden=!m};
   ["dobM","dobD"].forEach((id,i)=>$("#"+id).addEventListener("input",e=>{e.target.value=e.target.value.replace(/\D/g,"");if(e.target.value.length===2)$(i?"#dobY":"#dobD").focus()}));
   $("#dobY").addEventListener("input",e=>{e.target.value=e.target.value.replace(/\D/g,"")});
-  $("#gateForm").addEventListener("submit",e=>{e.preventDefault();
+  // a plain button, not a form submit: some embedded viewers block form submissions
+  $("#gateForm").addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.tagName==="INPUT"){e.preventDefault();$("#gateGo").click()}});
+  $("#gateGo").addEventListener("click",()=>{
     const st=sel.value,m=+$("#dobM").value,d=+$("#dobD").value,y=+$("#dobY").value,now=new Date();
     if(!st)return err("Choose your state, or Outside the US.");
     const dob=new Date(y,m-1,d);
