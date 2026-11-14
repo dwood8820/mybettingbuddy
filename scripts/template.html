@@ -52,7 +52,7 @@ button{font:inherit;color:inherit}
 .hero .wk{font-size:34px;line-height:1.1;margin:4px 0}
 .hero-sub{margin:0;max-width:640px;color:#DDEBE2;font-size:14.5px;text-shadow:0 1px 6px rgba(0,0,0,.5)}
 .toolpage .ouwrap{margin-top:0}
-@media (max-width:560px){.top-in{gap:8px 10px;flex-wrap:wrap;padding-bottom:8px}.league{width:100%;margin-left:0;display:grid;grid-template-columns:repeat(4,1fr)}.brand{font-size:17px;gap:6px}.brand .mark{width:24px;height:24px}.brand .mark svg{width:20px;height:20px}.league .soon{font-size:7.5px;margin-left:2px}.sport{padding:4px 8px;font-size:13px}.hero{padding:16px 16px 40px}.mainnav{flex-wrap:wrap;gap:0}.navdiv{display:none}.navgrp{width:100%;overflow-x:auto;scrollbar-width:none}.navgrp+.navdiv+.navgrp{border-top:1px solid var(--line)}.hero .wk{font-size:28px}.navtab{padding:10px 7px 8px;font-size:14px;gap:5px}.navtab svg{display:none}.navlab{margin-right:2px}}
+@media (max-width:560px){.top-in{gap:8px 10px;flex-wrap:wrap;padding-bottom:8px}.league{width:100%;margin-left:0;display:grid;grid-template-columns:repeat(4,1fr)}.brand{font-size:17px;gap:6px}.brand .mark{width:24px;height:24px}.brand .mark svg{width:20px;height:20px}.league .soon{font-size:7.5px;margin-left:2px}.sport{padding:4px 8px;font-size:13px}.hero{padding:16px 16px 40px}.mainnav{flex-wrap:wrap;gap:0}.navdiv{display:none}.navgrp{width:100%;overflow-x:auto;scrollbar-width:none}.navgrp+.navdiv+.navgrp{border-top:1px solid var(--line)}.hero .wk{font-size:28px}.navtab{padding:10px 6px 8px;font-size:13.5px;gap:5px}.navtab svg{display:none}.navlab{margin-right:2px;font-size:9.5px;letter-spacing:.6px}}
 
 .sport .soon{font-family:var(--body);font-size:9.5px;font-weight:700;letter-spacing:.6px;color:var(--gold);vertical-align:super;margin-left:3px}
 
@@ -570,12 +570,12 @@ function render(){renderSports();renderNav();hideTip();
 
 /* ---------- site nav + hero ---------- */
 const PAGES={
-  games:{t:"Spreads",d:"Every game's spread next to each team's point differential, week by week."},
-  totals:{t:"O/U",d:"Game totals and team totals next to how many points each side scores and allows."},
+  games:{t:"Spread",d:"Every game's spread next to each team's point differential, week by week."},
+  totals:{t:"Over/Under",d:"Game totals and team totals next to how many points each side scores and allows."},
   players:{t:"Player Props",d:"Prop lines next to each player's weekly results, split by home, away, wins and losses."},
   ou_splicer:{t:"Over/Under",d:"Find scoring trends by week, game type, matchup, venue, spread and total."},
   ats_splicer:{t:"Spread",d:"Find against-the-spread trends by side, spread, rest, matchup and team."},
-  prop_splicer:{t:"Player Prop",d:"See what a defense allows, game by game, to the top player at a position and to the whole offense."},
+  prop_splicer:{t:"Player Props",d:"See what a defense allows, game by game, to the top player at a position and to the whole offense."},
 };
 const YARDS=`<div class="yards" aria-hidden="true">${[10,20,30,40,50,40,30,20,10].map(n=>`<span>${n}</span>`).join("")}</div>`;
 function hero(eyebrow,title,sub){if(HOOPS(state.sport))return `<section class="hero surf court mid">${COURT}<div class="eyebrow">${esc(eyebrow)}</div><h1 class="wk">${esc(title)}</h1><p class="hero-sub">${esc(sub)}</p></section>`;return `<section class="hero turf"><div class="eyebrow">${esc(eyebrow)}</div><h1 class="wk">${esc(title)}</h1><p class="hero-sub">${esc(sub)}</p>${YARDS}</section>`}
@@ -589,7 +589,7 @@ function renderNav(){const nav=$("#mainnav");
   if(!LIVE.includes(state.sport)){nav.innerHTML="";nav.parentElement.hidden=true;return}nav.parentElement.hidden=false;
   const tab=(k,l,icon)=>`<button class="navtab" data-v="${k}" aria-current="${state.view===k?"page":"false"}">${icon?`<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">${icon}</svg>`:""}${l}</button>`;
   const props=hasProps();
-  nav.innerHTML=`<div class="navgrp"><span class="navlab">Matchups</span>${tab("games","Spreads")}${tab("totals","O/U")}${props?tab("players","Player Props"):""}</div>
+  nav.innerHTML=`<div class="navgrp"><span class="navlab">Matchup Trends</span>${tab("totals","Over/Under",TOOLS.ou_splicer.icon)}${tab("games","Spread",TOOLS.ats_splicer.icon)}${props?tab("players","Player Props",TOOLS.prop_splicer.icon):""}</div>
     <span class="navdiv" aria-hidden="true"></span><div class="navgrp"><span class="navlab">Build a Graph</span>${Object.entries(TOOLS).filter(([k])=>props||!PROP_VIEWS.includes(k)).map(([k,t])=>tab(k,t.name,t.icon)).join("")}</div>`;
   const cur=nav.querySelector('[aria-current="page"]');if(cur){const g=cur.parentElement;const over=cur.offsetLeft-g.offsetLeft+cur.offsetWidth-g.clientWidth;g.scrollLeft=over>0?over+16:0}
 }
@@ -600,7 +600,7 @@ $("#mainnav").addEventListener("click",e=>{const b=e.target.closest("[data-v]");
 const TOOLS={
   ou_splicer:{name:"Over/Under",icon:'<path d="M3 12h18M7 6l-4 6 4 6M17 6l4 6-4 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'},
   ats_splicer:{name:"Spread",icon:'<path d="M4 18h16M6 18V9M12 18V5M18 18v-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'},
-  prop_splicer:{name:"Player Prop",icon:'<circle cx="12" cy="7" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'},
+  prop_splicer:{name:"Player Props",icon:'<circle cx="12" cy="7" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'},
 };
 function toolSeg(){return `<div class="tools" role="group" aria-label="Tool kit"><span class="tools-lab">Tools</span>${Object.entries(TOOLS).map(([k,t])=>
   `<button class="tool" data-v="${k}" aria-pressed="${state.view===k}"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">${t.icon}</svg>${t.name}</button>`).join("")}</div>`}
