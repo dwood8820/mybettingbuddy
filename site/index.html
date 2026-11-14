@@ -532,8 +532,8 @@ table.log td.r,table.log th.r{text-align:right}
 window.startApp=function(MBB){
 if(MBB.nba&&MBB.nba.pkeys&&!MBB.nba._expanded){const K=MBB.nba.pkeys;MBB.nba._expanded=true;
   MBB.nba.players.forEach(p=>{p.g=p.g.map(r=>({wk:r[0],lbl:r[1],opp:r[2],home:!!r[3],res:r[4],s:Object.fromEntries(K.slice(5).map((k,i)=>[k,r[5+i]]))}))})}
-const DATA={nfl:MBB.nfl,ncaaf:MBB.ncaaf||null,nba:MBB.nba||null};
-const LIVE=["nfl"].concat(MBB.ncaaf?["ncaaf"]:[],MBB.nba?["nba"]:[]);           // sports with real data; the rest show the under-construction screen
+const DATA={nfl:MBB.nfl,ncaaf:MBB.ncaaf||null,nba:MBB.nba||null,ncaab:MBB.ncaab||null};
+const LIVE=["nfl"].concat(MBB.ncaaf?["ncaaf"]:[],MBB.nba?["nba"]:[],MBB.ncaab||(MBB.get&&!MBB.embedded)?["ncaab"]:[]);           // sports with real data; the rest show the under-construction screen
 let D=DATA.nfl, T=D.teams;
 const SPORTS=[["nfl","NFL"],["ncaaf","NCAAF"],["nba","NBA"],["ncaab","NCAAB"]];
 const state={sport:"nfl",view:"games",game:null,player:null,pos:"ALL",q:"",gameFilter:"ALL",market:null,line:null};
@@ -559,6 +559,7 @@ $("#sports").addEventListener("click",e=>{const b=e.target.closest("[data-s]");i
 
 function render(){renderSports();renderNav();hideTip();
   if(!LIVE.includes(state.sport))return renderUC();
+  if(!DATA[state.sport]){$("#main").innerHTML='<div class="loading" role="status"><span class="spin" aria-hidden="true"></span>Loading…</div>';return}
   if(!hasProps()&&PROP_VIEWS.includes(state.view))state.view="games";
     const games=D.slate;
   const P=PAGES[state.view]||PAGES.games;
@@ -577,10 +578,11 @@ const PAGES={
   prop_splicer:{t:"Player Prop",d:"See what a defense allows, game by game, to the top player at a position and to the whole offense."},
 };
 const YARDS=`<div class="yards" aria-hidden="true">${[10,20,30,40,50,40,30,20,10].map(n=>`<span>${n}</span>`).join("")}</div>`;
-function hero(eyebrow,title,sub){if(state.sport==="nba")return `<section class="hero surf court mid">${COURT}<div class="eyebrow">${esc(eyebrow)}</div><h1 class="wk">${esc(title)}</h1><p class="hero-sub">${esc(sub)}</p></section>`;return `<section class="hero turf"><div class="eyebrow">${esc(eyebrow)}</div><h1 class="wk">${esc(title)}</h1><p class="hero-sub">${esc(sub)}</p>${YARDS}</section>`}
-const sLab=s=>state.sport==="nba"?`${s-1}-${String(s).slice(2)}`:String(s);
-const sShort=s=>state.sport==="nba"?`'${String(s-1).slice(2)}-${String(s).slice(2)}`:`'${String(s).slice(2)}`;
-const UNIT=()=>D.sport==="nba"?"game":"week";
+function hero(eyebrow,title,sub){if(HOOPS(state.sport))return `<section class="hero surf court mid">${COURT}<div class="eyebrow">${esc(eyebrow)}</div><h1 class="wk">${esc(title)}</h1><p class="hero-sub">${esc(sub)}</p></section>`;return `<section class="hero turf"><div class="eyebrow">${esc(eyebrow)}</div><h1 class="wk">${esc(title)}</h1><p class="hero-sub">${esc(sub)}</p>${YARDS}</section>`}
+const HOOPS=k=>k==="nba"||k==="ncaab";
+const sLab=s=>HOOPS(state.sport)?`${s-1}-${String(s).slice(2)}`:String(s);
+const sShort=s=>HOOPS(state.sport)?`'${String(s-1).slice(2)}-${String(s).slice(2)}`:`'${String(s).slice(2)}`;
+const UNIT=()=>HOOPS(D.sport)?"game":"week";
 const PROP_VIEWS=["players","prop_splicer","hotcold"];
 const hasProps=()=>state.sport==="nfl"||state.sport==="nba"; // college player props aren't offered: most states don't allow those bets
 function renderNav(){const nav=$("#mainnav");
@@ -754,8 +756,8 @@ function wirePP(S,gl){
 /* ---------- over/under splicer ---------- */
 let OUHRAW,OUH,OU_SEASONS,OU_F,OU,ATSR,ATS_F,ATS,spB,tlB;
 const wxB=g=>{const out=[];if(g.roof==="D")return out;if(g.temp!=null){if(g.temp<=40)out.push("cold");else if(g.temp>=80)out.push("hot");else out.push("mild")}if(g.wind!=null&&g.wind>=15)out.push("windy");return out};
-const wkLab=w=>state.sport==="nba"?(w<40?"W"+w:"P"+(w-40)):w<=18?"W"+w:state.sport==="ncaaf"?"Bowl":{19:"WC",20:"DIV",21:"CONF",22:"SB"}[w];
-const wkName=w=>state.sport==="nba"?(w<40?"Week "+w:"Playoff week "+(w-40)):w<=18?"Week "+w:wkLab(w);
+const wkLab=w=>HOOPS(state.sport)?(w<40?"W"+w:"P"+(w-40)):w<=18?"W"+w:state.sport==="ncaaf"?"Bowl":{19:"WC",20:"DIV",21:"CONF",22:"SB"}[w];
+const wkName=w=>HOOPS(state.sport)?(w<40?"Week "+w:"Playoff week "+(w-40)):w<=18?"Week "+w:wkLab(w);
 function ouFiltered(skip){
   return OUH.filter(g=>{if(!OU.seasons.has(g.s))return false;
     for(const f of OU_F){if(f.k===skip)continue;const S=OU.f[f.k];if(!S.size)continue;
@@ -797,7 +799,7 @@ ${any?`<button class="oureset">Reset all filters</button>`:""}
           <label class="ousel">By <select id="ouDim">${[...OU_F.map(f=>[f.k,f.l]),["season","Season"]].map(([k,l])=>`<option value="${k}"${OU.dim===k?" selected":""}>${l}</option>`).join("")}</select></label></div>
         ${ouTable(gs)}
       </div>
-      <p class="oufoot">${state.sport==="nfl"?"NFL":"FBS"} pregame lines (the last line before kickoff) and final scores, ${sLab(OU_SEASONS[0])} to ${sLab(OU_SEASONS.at(-1))} (${state.sport==="nfl"?"nflverse":"ESPN; some seasons, especially 2022, are missing lines for part of the schedule"}). Over % and Under % leave pushes out. Filters stack: pick several options in one group to combine them, and each extra group narrows the results. ${state.sport==="nfl"?"Temperature and wind are missing for some games, mostly 2022 onward, so Conditions filters only count games with a reading. Rain and sky conditions aren\'t recorded historically.":"College history has no weather readings, so there's no Conditions filter."}</p>
+      <p class="oufoot">${{nfl:"NFL",ncaaf:"FBS",nba:"NBA",ncaab:"Division I"}[state.sport]} pregame lines (the last line before kickoff) and final scores, ${sLab(OU_SEASONS[0])} to ${sLab(OU_SEASONS.at(-1))} (${state.sport==="nfl"?"nflverse":"ESPN; some seasons, especially 2022, are missing lines for part of the schedule"}). Over % and Under % leave pushes out. Filters stack: pick several options in one group to combine them, and each extra group narrows the results. ${state.sport==="nfl"?"Temperature and wind are missing for some games, mostly 2022 onward, so Conditions filters only count games with a reading. Rain and sky conditions aren\'t recorded historically.":"College history has no weather readings, so there's no Conditions filter."}</p>
     </div></div>`;
   wireOU(gs);
 }
@@ -880,6 +882,13 @@ const GCFG={
     PHASE:[["R","Regular season"],["P","Bowls / playoff"]],MATCH:[["C","Conference"],["N","Non-conference"]],
     ROOF:[["D","Indoors"],["X","Outdoors"]],rank:true,wx:false,
     REST:[["short","Short week (≤5 days)"],["norm","Normal (6–8)"],["long","Extra (9–12)"],["bye","Off a bye (13+)"]],restB:r=>r<=5?"short":r<=8?"norm":r<=12?"long":"bye",edge:3},
+  ncaab:{post:39,
+    SPO:[["s1","PK–3"],["s2","3.5–6.5"],["s3","7–10.5"],["s4","11–15.5"],["s5","16+"]],spB:v=>v<=3?"s1":v<=6.5?"s2":v<=10.5?"s3":v<=15.5?"s4":"s5",
+    TLO:[["t0","Under 130"],["t1","130–139.5"],["t2","140–149.5"],["t3","150–159.5"],["t4","160+"]],tlB:v=>v<130?"t0":v<140?"t1":v<150?"t2":v<160?"t3":"t4",
+    SLOT:[["AFT","Afternoon (before 6 PM ET)"],["EVE","Evening (6–8:59 PM)"],["LATE","Late (9 PM+)"]],
+    PHASE:[["R","Regular season"],["P","Postseason"]],MATCH:[["C","Conference"],["N","Non-conference"]],
+    ROOF:null,rank:false,wx:false,
+    REST:[["short","1–2 days"],["norm","3–4 days"],["long","5–7 days"],["bye","8+ days"]],restB:r=>r<=2?"short":r<=4?"norm":r<=7?"long":"bye",edge:2},
   nba:{post:39,
     SPO:[["s1","PK–3"],["s2","3.5–6.5"],["s3","7–10"],["s4","10.5+"]],spB:v=>v<=3?"s1":v<=6.5?"s2":v<=10?"s3":"s4",
     TLO:[["t0","Under 210"],["t1","210–219.5"],["t2","220–229.5"],["t3","230–239.5"],["t4","240+"]],tlB:v=>v<210?"t0":v<220?"t1":v<230?"t2":v<240?"t3":"t4",
@@ -898,7 +907,7 @@ function buildGraphCtx(k,raw){
   const RANK={k:"rk",l:"Ranked matchup",of:g=>g.rk,o:[["RR","Both ranked"],["R","One ranked"],["-","Neither ranked"]]};
   const B2B={k:"b2b",l:"Back-to-backs",of:g=>g.ar==null||g.hr==null?null:g.ar<=1&&g.hr<=1?"both":g.ar<=1||g.hr<=1?"one":"none",o:[["one","One team on a back-to-back"],["both","Both teams on a back-to-back"],["none","Neither"]]};
   C.OU_F=[
-    {k:"slot",l:k==="nba"?"Tip-off":"Game type",of:g=>g.slot,o:G.SLOT},
+    {k:"slot",l:HOOPS(k)?"Tip-off":"Game type",of:g=>g.slot,o:G.SLOT},
     {k:"phase",l:"Season phase",of:g=>ph(g.w),o:G.PHASE},
     {k:"m",l:"Matchup",of:g=>g.m,o:G.MATCH},
     ...(G.rank?[RANK]:[]),...(G.b2b?[B2B]:[]),
@@ -921,9 +930,9 @@ function buildGraphCtx(k,raw){
   const EDGE=G.edge===1?[["adv","More rest"],["even","Same rest"],["dis","Less rest"]]:[["adv","3+ more days"],["even","About even"],["dis","3+ fewer days"]];
   C.ATS_F=[
     {k:"role",l:"Side",of:roleB,o:[["F","Favorite"],["D","Underdog"],["PK","Pick'em"]]},
-    {k:"loc",l:"Location",of:r=>r.loc,o:k==="nba"?[["H","Home"],["A","Away"]]:[["H","Home"],["A","Away"],["N","Neutral site"]]},
+    {k:"loc",l:"Location",of:r=>r.loc,o:HOOPS(k)?[["H","Home"],["A","Away"]]:[["H","Home"],["A","Away"],["N","Neutral site"]]},
     {k:"sp",l:"Pregame spread",of:r=>C.spB({sp:r.line}),o:G.SPO},
-    {k:"slot",l:k==="nba"?"Tip-off":"Game type",of:r=>r.slot,o:G.SLOT},
+    {k:"slot",l:HOOPS(k)?"Tip-off":"Game type",of:r=>r.slot,o:G.SLOT},
     {k:"phase",l:"Season phase",of:r=>ph(r.w),o:G.PHASE},
     {k:"m",l:"Matchup",of:r=>r.m,o:G.MATCH},
     ...(G.rank?[RANK]:[]),
@@ -983,7 +992,7 @@ ${any?`<button class="oureset">Reset all filters</button>`:""}
           <label class="ousel">By <select id="atsDim">${[["tm","Team"],...ATS_F.map(f=>[f.k,f.l]),["season","Season"]].map(([k,l])=>`<option value="${k}"${ATS.dim===k?" selected":""}>${l}</option>`).join("")}</select></label></div>
         ${atsTable(rs)}
       </div>
-      <p class="oufoot">${state.sport==="nfl"?"NFL":"FBS"} pregame spreads (the last line before kickoff) and final scores, ${sLab(OU_SEASONS[0])} to ${sLab(OU_SEASONS.at(-1))} (${state.sport==="nfl"?"nflverse":"ESPN"}). A side covers when its final margin plus its spread is above zero; ties with the spread are pushes. Cover % leaves pushes out. Units assume 1 unit risked at −110 on every game. Rest counts days since each team's last game.</p>
+      <p class="oufoot">${{nfl:"NFL",ncaaf:"FBS",nba:"NBA",ncaab:"Division I"}[state.sport]} pregame spreads (the last line before kickoff) and final scores, ${sLab(OU_SEASONS[0])} to ${sLab(OU_SEASONS.at(-1))} (${state.sport==="nfl"?"nflverse":"ESPN"}). A side covers when its final margin plus its spread is above zero; ties with the spread are pushes. Cover % leaves pushes out. Units assume 1 unit risked at −110 on every game. Rest counts days since each team's last game.</p>
     </div></div>`;
   wireATS(rs);
 }
@@ -1011,9 +1020,10 @@ function atsTable(rs){
   else{const f=ATS_F.find(x=>x.k===ATS.dim);groups=f.o.map(([v,l])=>[l,rs.filter(r=>f.of(r)===v)])}
   const rows=groups.filter(([,a])=>a.length).map(([l,a])=>({l,a,R:atsRec(a)}));
   if(ATS.dim==="tm")rows.sort((x,y)=>(y.R.pct??0)-(x.R.pct??0)||y.R.n-x.R.n);
+  const allN=rows.length;if(ATS.dim==="tm"&&allN>50)rows.splice(50);
   const lab=ATS.dim==="tm"?"Team":ATS.dim==="season"?"Season":ATS_F.find(x=>x.k===ATS.dim).l;
   return `<div class="tbl"><table class="log ppt atsbl"><thead><tr><th>${esc(lab)}</th><th class="r">Games</th><th class="r">ATS</th><th class="r">Avg ATS margin</th><th class="r">Units</th><th class="r">Cover %</th></tr></thead><tbody>${rows.map(({l,a,R})=>{const p=R.pct??0;
-    return `<tr><td>${esc(l)}</td><td class="r num">${R.n}</td><td class="r num">${R.w}-${R.l}-${R.p}</td><td class="r num ${p>=.5?"ov":"un"}">${sgn(avg(a.map(r=>r.ats)))}</td><td class="r num ${R.u>=0?"ov":"un"}">${sgn(R.u)}</td><td class="r"><span class="oubarc"><i style="width:${p*100}%"></i></span><b class="num ${p>=.5?"ov":"un"}">${R.pct==null?"—":Math.round(p*100)+"%"}</b></td></tr>`}).join("")||`<tr><td colspan="6" class="empty">No games</td></tr>`}</tbody></table></div>`;
+    return `<tr><td>${esc(l)}</td><td class="r num">${R.n}</td><td class="r num">${R.w}-${R.l}-${R.p}</td><td class="r num ${p>=.5?"ov":"un"}">${sgn(avg(a.map(r=>r.ats)))}</td><td class="r num ${R.u>=0?"ov":"un"}">${sgn(R.u)}</td><td class="r"><span class="oubarc"><i style="width:${p*100}%"></i></span><b class="num ${p>=.5?"ov":"un"}">${R.pct==null?"—":Math.round(p*100)+"%"}</b></td></tr>`}).join("")||`<tr><td colspan="6" class="empty">No games</td></tr>`}</tbody></table></div>${allN>rows.length?`<p class="oufoot">Top ${rows.length} of ${allN} teams by cover rate. Pick a team in the filters to see any other.</p>`:""}`;
 }
 function wireATS(rs){
   const body=$("#toolBody");
@@ -1318,7 +1328,10 @@ function renderGameDetail(){
 let slateByTeam={};
 function buildSlateIndex(){slateByTeam={};D.slate.forEach(g=>{slateByTeam[g.away]={g,opp:g.home,home:false};slateByTeam[g.home]={g,opp:g.away,home:true}})}
 buildSlateIndex();
-function setSport(k){state.sport=k;if(!DATA[k]||D===DATA[k])return;
+function setSport(k){state.sport=k;
+  if(!DATA[k]&&LIVE.includes(k)&&MBB.get){$("#main").innerHTML='<div class="loading" role="status"><span class="spin" aria-hidden="true"></span>Loading…</div>';
+    MBB.get(k+".json").then(d=>{DATA[k]=d;if(state.sport===k){setSport(k);render()}}).catch(()=>{LIVE.splice(LIVE.indexOf(k),1);if(state.sport===k)render()});return}
+  if(!DATA[k]||D===DATA[k])return;
   D=DATA[k];T=D.teams;buildSlateIndex();
   Object.assign(state,{game:null,team:null,pgame:null,popen:null,pmk:null,conf:"ALL"});
   loadWeather()}
@@ -1402,7 +1415,7 @@ function cfbWx(g){
   const ic=/thunder|storm/.test(w)?"storm":/snow|flurr|sleet|ice/.test(w)?"snow":/rain|shower|drizzle/.test(w)?"rain":/fog|haze/.test(w)?"fog":/partly|mostly sunny|intermittent/.test(w)?"part":/cloud|overcast/.test(w)?"cloud":/sun|clear/.test(w)?"sun":null;
   return `${ic?svgI(ic):""}<span>${g.wx?esc(g.wx)+(g.temp!=null?" · ":""):""}${g.temp!=null?Math.round(g.temp)+"°":""}</span>`}
 function wxHtml(g){
-  if(D.sport==="nba")return "";
+  if(HOOPS(D.sport))return "";
   if(D.sport==="ncaaf")return cfbWx(g);
   const st=venueOf(g)||[];const kind=st[2];
   if(kind==="dome")return `${svgI("dome")}<span>Dome</span>`;
@@ -1432,8 +1445,10 @@ function loadWeather(){
   need.forEach(one);
 }
 const CONFS=["ALL","TOP25","SEC","Big Ten","Big 12","ACC","American","Mountain West","Sun Belt","MAC","C-USA","Pac-12","Independent"];
-function confChips(){if(D.sport!=="ncaaf")return "";const c=state.conf||"ALL";
-  return `<div class="confs" role="group" aria-label="Conference">${CONFS.filter(k=>k==="ALL"||k==="TOP25"||D.slate.some(g=>g.aconf===k||g.hconf===k)).map(k=>`<button data-conf="${k}" aria-pressed="${c===k}">${k==="ALL"?"All":k==="TOP25"?"Top 25":k}</button>`).join("")}</div>`}
+function confList(){if(D.sport==="ncaaf")return CONFS;const n={};D.slate.forEach(g=>[g.aconf,g.hconf].forEach(c=>{if(c)n[c]=(n[c]||0)+1}));
+  const big=["SEC","Big Ten","Big 12","ACC","Big East"];return ["ALL","TOP25",...big.filter(c=>n[c]),...Object.keys(n).filter(c=>!big.includes(c)).sort((a,b)=>n[b]-n[a])]}
+function confChips(){if(D.sport!=="ncaaf"&&D.sport!=="ncaab")return "";const c=state.conf||"ALL";
+  return `<div class="confs" role="group" aria-label="Conference">${confList().filter(k=>k==="ALL"||k==="TOP25"||D.slate.some(g=>g.aconf===k||g.hconf===k)).map(k=>`<button data-conf="${k}" aria-pressed="${c===k}">${k==="ALL"?"All":k==="TOP25"?"Top 25":k}</button>`).join("")}</div>`}
 const rk25=(g,ab)=>{const r=ab===g.away?g.ar:g.hr;return r&&r<=25?`<small class="rk">${r}</small>`:""};
 function gameCards(active,teamLinks){
   const c=state.conf||"ALL";
@@ -1571,7 +1586,7 @@ function ucBlock(name,sub="",btn=false){return `<div class="uc">
     ${btn?'<button class="btn" id="goNfl">Go to NFL</button>':""}
   </div>`}
 function renderUC(){const [name,desc]=UC[state.sport];
-  $("#main").innerHTML=sportBanner(state.sport)+ucBlock(name,desc+" NFL and NCAAF are live now.",true);
+  $("#main").innerHTML=sportBanner(state.sport)+ucBlock(name,desc+" Live now: "+LIVE.map(k=>k.toUpperCase()).join(", ")+".",true);
   $("#goNfl").addEventListener("click",()=>{setSport("nfl");try{history.replaceState(null,"","#nfl")}catch(_){}render()});
 }
 

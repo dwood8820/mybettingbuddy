@@ -1020,9 +1020,10 @@ function atsTable(rs){
   else{const f=ATS_F.find(x=>x.k===ATS.dim);groups=f.o.map(([v,l])=>[l,rs.filter(r=>f.of(r)===v)])}
   const rows=groups.filter(([,a])=>a.length).map(([l,a])=>({l,a,R:atsRec(a)}));
   if(ATS.dim==="tm")rows.sort((x,y)=>(y.R.pct??0)-(x.R.pct??0)||y.R.n-x.R.n);
+  const allN=rows.length;if(ATS.dim==="tm"&&allN>50)rows.splice(50);
   const lab=ATS.dim==="tm"?"Team":ATS.dim==="season"?"Season":ATS_F.find(x=>x.k===ATS.dim).l;
   return `<div class="tbl"><table class="log ppt atsbl"><thead><tr><th>${esc(lab)}</th><th class="r">Games</th><th class="r">ATS</th><th class="r">Avg ATS margin</th><th class="r">Units</th><th class="r">Cover %</th></tr></thead><tbody>${rows.map(({l,a,R})=>{const p=R.pct??0;
-    return `<tr><td>${esc(l)}</td><td class="r num">${R.n}</td><td class="r num">${R.w}-${R.l}-${R.p}</td><td class="r num ${p>=.5?"ov":"un"}">${sgn(avg(a.map(r=>r.ats)))}</td><td class="r num ${R.u>=0?"ov":"un"}">${sgn(R.u)}</td><td class="r"><span class="oubarc"><i style="width:${p*100}%"></i></span><b class="num ${p>=.5?"ov":"un"}">${R.pct==null?"—":Math.round(p*100)+"%"}</b></td></tr>`}).join("")||`<tr><td colspan="6" class="empty">No games</td></tr>`}</tbody></table></div>`;
+    return `<tr><td>${esc(l)}</td><td class="r num">${R.n}</td><td class="r num">${R.w}-${R.l}-${R.p}</td><td class="r num ${p>=.5?"ov":"un"}">${sgn(avg(a.map(r=>r.ats)))}</td><td class="r num ${R.u>=0?"ov":"un"}">${sgn(R.u)}</td><td class="r"><span class="oubarc"><i style="width:${p*100}%"></i></span><b class="num ${p>=.5?"ov":"un"}">${R.pct==null?"—":Math.round(p*100)+"%"}</b></td></tr>`}).join("")||`<tr><td colspan="6" class="empty">No games</td></tr>`}</tbody></table></div>${allN>rows.length?`<p class="oufoot">Top ${rows.length} of ${allN} teams by cover rate. Pick a team in the filters to see any other.</p>`:""}`;
 }
 function wireATS(rs){
   const body=$("#toolBody");
