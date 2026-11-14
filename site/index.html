@@ -600,8 +600,25 @@ function statusTxt(g){if(g.final)return `<span class="final">Final</span>`;if(g.
 function renderSports(){
   $("#sports").innerHTML=SPORTS.map(([k,l])=>`<button class="sport" role="tab" id="tab-${k}" aria-selected="${state.sport===k}" data-s="${k}">${l}${LIVE.includes(k)?"":'<span class="soon">SOON</span>'}</button>`).join("");
 }
-$("#sports").addEventListener("click",e=>{const b=e.target.closest("[data-s]");if(!b)return;setSport(b.dataset.s);try{history.replaceState(null,"","#"+state.sport)}catch(_){}render()});
+$("#sports").addEventListener("click",e=>{const b=e.target.closest("[data-s]");if(!b)return;WANT=null;setSport(b.dataset.s);render()});
 
+
+/* ---------- remembered + shareable location: #sport/tab/AWAY-HOME/TEAM (also saved per browser) ---------- */
+const VSLUG={games:"spread",totals:"over-under",players:"player-props",ou_splicer:"graph-over-under",ats_splicer:"graph-spread",prop_splicer:"graph-player-props"};
+const VBACK=Object.fromEntries(Object.entries(VSLUG).map(([a,b])=>[b,a]));
+let WANT=null;
+function locStr(){let s=state.sport+"/"+(VSLUG[state.view]||"spread");
+  if(!TOOLS[state.view]&&D&&D.slate&&DATA[state.sport]===D){const id=state.view==="players"?state.pgame:state.game,g=D.slate.find(x=>x.id===id);
+    if(g){s+="/"+g.away+"-"+g.home;const t=state.view==="games"||(state.view==="totals"&&state.ouMode==="team")?state.team:null;if(t)s+="/"+t}}
+  return s}
+function saveLoc(){const s=locStr();try{if(decodeURIComponent(location.hash.slice(1))!==s)history.replaceState(null,"","#"+s)}catch(_){}try{localStorage.setItem("mbb_last",s)}catch(_){}}
+function readLoc(s){const [sp,v,g,tm]=String(s||"").split("/");if(!SPORTS.some(x=>x[0]===sp))return false;
+  WANT=g||tm?{sp,g,t:tm}:null;if(VBACK[v])state.view=VBACK[v];if(state.view==="totals")state.ouMode=tm?"team":"game";
+  if(WANT){state.game=null;state.pgame=null}setSport(sp);return true}
+function pickWanted(){if(!WANT||WANT.sp!==state.sport||!D)return null;const w=WANT;WANT=null;
+  let g=w.g&&D.slate.find(x=>x.away+"-"+x.home===w.g);
+  if(!g&&w.t)g=D.slate.find(x=>x.away===w.t||x.home===w.t); // same team, new week
+  if(!g)return null;return {g,t:w.t===g.away||w.t===g.home?w.t:null}}
 function render(){renderSports();renderNav();hideTip();
   if(!LIVE.includes(state.sport))return renderUC();
   if(!DATA[state.sport]){$("#main").innerHTML='<div class="loading" role="status"><span class="spin" aria-hidden="true"></span>Loading…</div>';return}
@@ -609,7 +626,7 @@ function render(){renderSports();renderNav();hideTip();
     const games=D.slate;
   const P=PAGES[state.view]||PAGES.games;
   $("#main").innerHTML=hero(`${state.sport.toUpperCase()} · ${TOOLS[state.view]?"Build a Graph":D.weekLabel||"Week "+D.week}`,P.t,TOOLS[state.view]||UNIT()==="week"?P.d:P.d.replace("week by week","game by game").replace("weekly results","game-by-game results"))+`<div id="view"></div>`;
-  if(TOOLS[state.view])return renderTool(state.view);
+  if(TOOLS[state.view]){saveLoc();return renderTool(state.view)}
   state.view==="players"?renderPlayers():renderGames();
 }
 
@@ -1165,7 +1182,7 @@ function viewSeg(){return `<div class="seg vseg" role="group" aria-label="View">
       <button data-v="totals" aria-pressed="${state.view==="totals"}">O/U</button>
       <button data-v="players" aria-pressed="${state.view==="players"}">Player Props</button></div>`}
 function renderGames(){
-  if(!state.game){const up=D.slate.find(g=>!g.final)||D.slate[0];state.game=up.id}
+  if(!state.game){const w=pickWanted();if(w){state.game=w.g.id;state.team=w.t||null;if(w.t&&state.view==="totals")state.ouMode="team"}else{const up=D.slate.find(g=>!g.final)||D.slate[0];state.game=up.id}}
   const rail=gameCards(state.game,true);
   $("#view").innerHTML=`<div class="grid g3"><aside class="rail" aria-label="This week's games">${rail}</aside><div id="detail"></div><aside id="news" class="news" aria-label="Injuries and news"></aside></div>`;
   $(".rail").addEventListener("click",e=>{const b=e.target.closest("[data-g]");if(!b)return;const t=e.target.closest("[data-t]");const g=D.slate.find(x=>x.id===b.dataset.g);if(b.dataset.g!==state.game||t){state.team=t?t.dataset.t:g.away}if(t&&state.view==="totals")state.ouMode="team";state.game=b.dataset.g;renderGames();if(innerWidth<=900)$("#detail").scrollIntoView({behavior:"smooth",block:"start"})});
@@ -1353,7 +1370,7 @@ function teamSide(ab,exp,g){
   </section>`};
 }
 function renderGameDetail(){
-  const g=D.slate.find(x=>x.id===state.game);
+  const g=D.slate.find(x=>x.id===state.game);setTimeout(saveLoc);
   if(g.spread==null){$("#detail").innerHTML=`<div class="panel empty">No line posted for this game yet.</div>`;return}
   if(state.team!==g.away&&state.team!==g.home)state.team=g.away;
   const ou=state.view==="totals",mode=state.ouMode||"game",isGame=ou&&mode==="game";
@@ -1573,13 +1590,13 @@ function matchHead(g,pick){
     </div>`;
 }
 function renderPlayers(){
-  if(!state.pgame){state.pgame=(D.slate.find(g=>!g.final)||D.slate[0]).id}
+  if(!state.pgame){const w=pickWanted();state.pgame=w?w.g.id:(D.slate.find(g=>!g.final)||D.slate[0]).id}
   $("#view").innerHTML=`<div class="grid g3"><aside class="rail" aria-label="This week's games">${gameCards(state.pgame)}</aside><div id="detail"></div><aside id="news" class="news" aria-label="Injuries and news"></aside></div>`;
   $(".rail").addEventListener("click",e=>{const b=e.target.closest("[data-g]");if(!b)return;state.pgame=b.dataset.g;state.popen=null;renderPlayers();if(innerWidth<=900)$("#detail").scrollIntoView({behavior:"smooth",block:"start"})});
   renderPropBoard();renderNews(D.slate.find(x=>x.id===state.pgame));
 }
 function renderPropBoard(){
-  const g=D.slate.find(x=>x.id===state.pgame);
+  const g=D.slate.find(x=>x.id===state.pgame);setTimeout(saveLoc);
   const roster=D.players.filter(p=>p.team===g.away||p.team===g.home);
   const avail=markets().filter(m=>roster.some(m.elig));
   if(!state.pmk||!avail.find(m=>m.k===state.pmk))state.pmk=avail[0].k;
@@ -1692,7 +1709,8 @@ function renderUC(){const [name,desc]=UC[state.sport];
 }
 
 $("#upd").textContent="Stats through "+D.updated+".";
-const h=(location.hash||"").slice(1);if(SPORTS.some(s=>s[0]===h))setSport(h);
+{let s="";try{s=decodeURIComponent((location.hash||"").slice(1))}catch(_){}if(s==="terms")s="";if(!s){try{s=localStorage.getItem("mbb_last")||""}catch(_){}}readLoc(s)}
+addEventListener("hashchange",()=>{let s="";try{s=decodeURIComponent(location.hash.slice(1))}catch(_){}if(s&&s!=="terms"&&s!==locStr()&&readLoc(s))render()});
 $("#main").addEventListener("click",e=>{const cf=e.target.closest("[data-conf]");if(cf){state.conf=cf.dataset.conf;render();return}});
 render();
 loadWeather();
