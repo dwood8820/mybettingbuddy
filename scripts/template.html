@@ -598,8 +598,8 @@ $("#mainnav").addEventListener("click",e=>{const b=e.target.closest("[data-v]");
 
 /* ---------- tool kit (football) ---------- */
 const TOOLS={
-  ou_splicer:{name:"Over/Under",icon:'<path d="M3 12h18M7 6l-4 6 4 6M17 6l4 6-4 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'},
-  ats_splicer:{name:"Spread",icon:'<path d="M4 18h16M6 18V9M12 18V5M18 18v-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'},
+  ou_splicer:{name:"Over/Under",icon:'<path d="M12 3v18M6 7l6-4 6 4M6 17l6 4 6-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'},
+  ats_splicer:{name:"Spread",icon:'<path d="M3 12h18M7 6l-4 6 4 6M17 6l4 6-4 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'},
   prop_splicer:{name:"Player Props",icon:'<circle cx="12" cy="7" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'},
 };
 function toolSeg(){return `<div class="tools" role="group" aria-label="Tool kit"><span class="tools-lab">Tools</span>${Object.entries(TOOLS).map(([k,t])=>
