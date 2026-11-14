@@ -341,6 +341,18 @@ button{font:inherit;color:inherit}
 .gate-mark{width:64px;height:64px;border-radius:50%;border:2px solid var(--gold);color:var(--gold);display:grid;place-items:center;font:800 22px var(--display)}
 .gate-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:4px}
 .btn.ghost{background:none;border:1px solid var(--line2);color:var(--soft)}
+.gate-form{display:flex;flex-direction:column;gap:12px;width:100%;text-align:left}
+.gf{display:flex;flex-direction:column;gap:5px;border:0;margin:0;padding:0}
+.gf span,.gf legend{font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--soft);padding:0;margin-bottom:5px}
+.gf select,.dob input{background:var(--ink);border:1px solid var(--line2);border-radius:8px;color:var(--text);font:500 16px var(--body);padding:10px 12px;width:100%}
+.gf select:focus,.dob input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.dob{display:grid;grid-template-columns:1fr 1fr 1.5fr;gap:8px}
+.dob input{text-align:center}
+.gate-err{color:#FF7A88!important;font-size:13px!important;margin:0;text-align:left!important}
+.gate-priv{font-size:11.5px!important;color:var(--muted)!important;margin:0}
+.gate-note{background:rgba(244,193,79,.1);border:1px solid rgba(244,193,79,.35);border-radius:10px;padding:10px 12px;font-size:13.5px;color:var(--soft)}
+.rg{font-size:11.5px;color:var(--muted);margin:0;padding:10px 20px 14px;border-top:1px solid var(--line)}
+.rg b{color:var(--soft);font-weight:600}
 .gate-fine{font-size:12px!important;color:var(--muted)!important}
 
 /* other sports' surfaces */
@@ -568,17 +580,27 @@ table.log td.r,table.log th.r{text-align:right}
 </footer>
 <div class="modal gate" id="gate" hidden role="dialog" aria-modal="true" aria-labelledby="gateTitle">
   <div class="sheet gate-sheet" tabindex="-1">
-    <div class="gate-mark" aria-hidden="true">21+</div>
-    <h2 id="gateTitle">Are you 21 or older?</h2>
-    <p id="gateText">MyBettingBuddy covers sports betting odds and lines. You must be 21 or older, or the legal age where you live if higher, to continue.</p>
-    <div class="gate-btns" id="gateBtns"><button class="btn" id="gateYes" type="button">I'm 21 or older</button><button class="btn ghost" id="gateNo" type="button">I'm under 21</button></div>
+    <div class="gate-mark" aria-hidden="true" id="gateMark">21+</div>
+    <h2 id="gateTitle">Confirm your age</h2>
+    <p id="gateText">MyBettingBuddy covers sports betting odds and lines. You must be of legal betting age where you live: 21 in most states, 18 in a few.</p>
+    <form class="gate-form" id="gateForm" novalidate>
+      <label class="gf"><span>Where are you?</span><select id="gateState" required><option value="">Choose your state</option></select></label>
+      <fieldset class="gf"><legend>Date of birth</legend><div class="dob">
+        <input id="dobM" inputmode="numeric" autocomplete="bday-month" placeholder="MM" maxlength="2" aria-label="Birth month">
+        <input id="dobD" inputmode="numeric" autocomplete="bday-day" placeholder="DD" maxlength="2" aria-label="Birth day">
+        <input id="dobY" inputmode="numeric" autocomplete="bday-year" placeholder="YYYY" maxlength="4" aria-label="Birth year"></div></fieldset>
+      <p class="gate-err" id="gateErr" role="alert" hidden></p>
+      <button class="btn" id="gateGo" type="submit">Continue</button>
+      <p class="gate-priv">Your answers stay in this browser. Nothing is sent or stored on our servers.</p>
+    </form>
+    <div class="gate-btns" id="gateBtns" hidden><button class="btn" id="gateOk" type="button">Got it, continue</button></div>
     <p class="gate-fine">By continuing you agree to our <button class="linkbtn" id="gateTerms" type="button">Terms &amp; Disclaimers</button>. Gambling problem? Call or text 1-800-GAMBLER.</p>
   </div>
 </div>
 <div class="modal" id="terms" hidden role="dialog" aria-modal="true" aria-labelledby="termsTitle">
   <div class="sheet" tabindex="-1">
     <div class="sheet-h"><h2 id="termsTitle">Terms &amp; Disclaimers</h2><button class="x" id="closeTerms" type="button" aria-label="Close">×</button></div>
-    <p class="upd">Last updated September 27, 2026</p>
+    <p class="upd">Last updated November 13, 2026</p>
     <h3>No affiliation</h3>
     <p>MyBettingBuddy is an independent website. It is not affiliated with, endorsed by, sponsored by or connected to the National Football League, the NCAA, Major League Baseball, the National Basketball Association, the National Hockey League, the PGA Tour, any team, player, league or governing body, or any sportsbook, including DraftKings, FanDuel, BetMGM, Caesars, BetRivers, Bovada and BetOnline. All team names, league names, sportsbook names and other trademarks belong to their respective owners and are used only to identify the games and odds being described.</p>
     <h3>Information and entertainment only</h3>
@@ -586,7 +608,7 @@ table.log td.r,table.log th.r{text-align:right}
     <h3>Accuracy of data</h3>
     <p>Odds, lines, statistics, schedules and weather come from third-party sources and may be delayed, incomplete or incorrect. Some figures are estimates or saved snapshots rather than live numbers: player prop lines marked "sample" are set from season averages, team totals are implied from the game total and spread, and odds and weather may reflect an earlier time than shown on your sportsbook. Always confirm odds and lines with your sportsbook before placing a bet. We make no warranty of any kind about the accuracy, completeness or availability of the site.</p>
     <h3>Age and location</h3>
-    <p>You must be at least 21 years old, or the legal age where you live if higher, to use this site for sports betting purposes. Sports betting is legal only in certain states and jurisdictions. It is your responsibility to know and follow the laws where you are located. This site does not accept or place wagers.</p>
+    <p>You must be of legal sports betting age where you are located to use this site: 21 in most states, and 18 in a few (currently Montana, New Hampshire, Rhode Island, Washington, D.C. and Wyoming). If the legal age where you live is higher, that age applies. We ask for your state and date of birth when you first visit. Your answers are checked in your browser and are not sent to us. Sports betting is legal only in certain states and jurisdictions. It is your responsibility to know and follow the laws where you are located. This site does not accept or place wagers.</p>
     <h3>Responsible gambling</h3>
     <p>Only bet what you can afford to lose. If gambling is causing problems for you or someone you know, help is free and confidential: call or text 1-800-GAMBLER, or visit ncpgambling.org.</p>
     <h3>Data sources</h3>
@@ -612,6 +634,12 @@ const START=DATA[MBB.start]?MBB.start:SPORTS.map(s=>s[0]).find(k=>DATA[k]);
 let D=DATA[START], T=D.teams;
 const state={sport:START,view:"games",game:null,player:null,pos:"ALL",q:"",gameFilter:"ALL",market:null,line:null};
 const $=s=>document.querySelector(s);
+const AGE18=new Set(["MT","NH","RI","DC","WY"]);
+const NO_SB=new Set(["AL","AK","CA","GA","HI","ID","MN","OK","SC","TX","UT"]);           // no legal sports betting
+const RETAIL_SB=new Set(["MS","NE","NM","ND","SD","WA","WI","MT"]);                     // in-person / on-site only
+const US_STATES=[["AL","Alabama"],["AK","Alaska"],["AZ","Arizona"],["AR","Arkansas"],["CA","California"],["CO","Colorado"],["CT","Connecticut"],["DE","Delaware"],["DC","District of Columbia"],["FL","Florida"],["GA","Georgia"],["HI","Hawaii"],["ID","Idaho"],["IL","Illinois"],["IN","Indiana"],["IA","Iowa"],["KS","Kansas"],["KY","Kentucky"],["LA","Louisiana"],["ME","Maine"],["MD","Maryland"],["MA","Massachusetts"],["MI","Michigan"],["MN","Minnesota"],["MS","Mississippi"],["MO","Missouri"],["MT","Montana"],["NE","Nebraska"],["NV","Nevada"],["NH","New Hampshire"],["NJ","New Jersey"],["NM","New Mexico"],["NY","New York"],["NC","North Carolina"],["ND","North Dakota"],["OH","Ohio"],["OK","Oklahoma"],["OR","Oregon"],["PA","Pennsylvania"],["RI","Rhode Island"],["SC","South Carolina"],["SD","South Dakota"],["TN","Tennessee"],["TX","Texas"],["UT","Utah"],["VT","Vermont"],["VA","Virginia"],["WA","Washington"],["WV","West Virginia"],["WI","Wisconsin"],["WY","Wyoming"],["XX","Outside the US"]];
+const minAge=st=>AGE18.has(st)?18:21;
+const AGE={st:null,min:21};
 let _phone=innerWidth<600;addEventListener("resize",()=>{const p=innerWidth<600;if(p!==_phone){_phone=p;try{render()}catch(_){}}});
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const sgn=(v,d=1)=>v==null||isNaN(v)?"—":(v>0?"+":v<0?"−":"")+Math.abs(v).toFixed(d).replace(/\.0$/,"");
@@ -701,6 +729,7 @@ function renderTool(k){
   $("#view").innerHTML=`<section class="panel toolpage" aria-label="${t.name}">
     <div hidden><span class="tool-sub">${k==="ou_splicer"?"Find scoring trends by week, slot, matchup, venue, spread and total":k==="ats_splicer"?"Find against-the-spread trends by side, spread, rest, matchup and team":"See what a defense allows, game by game, to the top player at a position and to the whole offense"}</span></div>
     <div id="toolBody"></div>
+    ${rgLine()}
   </section>`;
   const need=k==="ou_splicer"||k==="ats_splicer"?["graphs",useGraphs,GCTX,buildGraphCtx,"_ou_hist.json"]:k==="prop_splicer"?["props",usePP,PPCTX,buildPPCtx,"_pp_hist.json"]:null;
   if(need&&!need[1](state.sport)){
@@ -1410,6 +1439,7 @@ function renderGameDetail(){
     ${ou?`<div class="ctlbar ou3">${mseg}</div>`:""}
     <div class="two">${S.html}</div>
     ${sitHtml(g,ou)}
+    ${rgLine()}
   </div>`;
   const sec=$("#detail section.side");const c=sec.querySelector(".c-line svg");
   if(c)wireLine(sec.querySelector(".c-line"),S.games,S.series,S.line??S.exp,S.opt,xFor(S.games.length));onCtl(sec,renderGameDetail);
@@ -1648,6 +1678,7 @@ function sitHtml(g,ou){
     <div class="sit-scroll"><table class="sit-t"><thead><tr><th></th><th>${chip(g.away)} ${esc(T[g.away].nick)}</th><th>${chip(g.home)} ${esc(T[g.home].nick)}</th></tr></thead><tbody>${body}</tbody></table></div>
     <p class="sit-note"><i class="sit-key"></i>Applies to this game${hasDates?"":" · rest splits arrive with the next data refresh"}. Faded = fewer than 3 games.</p></div>`;
 }
+const rgLine=()=>`<p class="rg"><b>For research and entertainment, not betting advice.</b> Past results don't guarantee future ones. ${AGE.st&&NO_SB.has(AGE.st)?"Sports betting isn't legal in your state. ":`You must be ${AGE.min}+ to bet. `}Gambling problem? Call or text 1-800-GAMBLER.</p>`;
 /* line movement: where the line opened vs where it is now (ESPN / DraftKings), shown until kickoff */
 function moveRow(g){
   const m=g.mv;if(!m||g.final)return"";
@@ -1712,6 +1743,7 @@ function renderPropBoard(){
     ${m.td?`<div class="onote">${oddsNote}</div>`:""}
     <div class="phead"><span>Player</span>${m.td?"<span>Odds</span><span>Implied</span><span>Scored</span>":"<span>Line<em>sample</em></span><span>Avg</span><span>Over</span>"}<span></span></div>
     <div class="plist">${rows||'<div class="empty">No players with enough volume yet</div>'}</div>
+    ${rgLine()}
   </div>`;
   $(".mtabs").addEventListener("click",e=>{const b=e.target.closest("[data-m]");if(!b)return;state.pmk=b.dataset.m;state.popen=null;renderPropBoard()});
   $(".plist").addEventListener("click",e=>{const b=e.target.closest(".prow");if(!b)return;state.popen=state.popen===b.dataset.p?null:b.dataset.p;renderPropBoard()});
@@ -1790,13 +1822,38 @@ $("#main").addEventListener("click",e=>{const cf=e.target.closest("[data-conf]")
 render();
 loadWeather();
 
-/* age check: remembered per browser; if storage is blocked, it simply asks again next visit */
-(function(){const g=$("#gate");let ok=false;try{ok=localStorage.getItem("mbb_age_ok")==="1"}catch(_){}
-  if(ok)return;g.hidden=false;g.querySelector(".sheet").focus();
-  $("#gateYes").addEventListener("click",()=>{try{localStorage.setItem("mbb_age_ok","1")}catch(_){}g.hidden=true});
-  $("#gateNo").addEventListener("click",()=>{$("#gateTitle").textContent="Sorry, this site is for adults 21+";
-    $("#gateText").textContent="You must be 21 or older to use MyBettingBuddy. If you or someone you know has a gambling problem, call or text 1-800-GAMBLER.";$("#gateBtns").hidden=true});
+/* age check (v2): state + date of birth, checked in this browser only. 18+ where state law allows, otherwise 21+.
+   Passing is remembered for 30 days; an underage answer locks the gate for 24 hours. Status as of Nov 2026. */
+(function(){const g=$("#gate");const LS=k=>{try{return localStorage.getItem(k)}catch(_){return null}},SS=(k,v)=>{try{localStorage.setItem(k,v)}catch(_){}};
+  let saved=null;try{saved=JSON.parse(LS("mbb_age2")||"null")}catch(_){}
+  const fresh=saved&&saved.ok&&Date.now()-saved.t<30*864e5;
+  if(fresh){AGE.st=saved.st;AGE.min=minAge(saved.st);return}
+  const sel=$("#gateState");sel.insertAdjacentHTML("beforeend",US_STATES.map(([k,n])=>`<option value="${k}">${n}</option>`).join(""));
+  if(saved&&saved.st)sel.value=saved.st;
+  g.hidden=false;g.querySelector(".sheet").focus();
   $("#gateTerms").addEventListener("click",()=>{$("#terms").hidden=false;$("#terms").style.zIndex=80;$("#terms .sheet").focus()});
+  const block=(min)=>{$("#gateMark").textContent=min+"+";$("#gateTitle").textContent=`Sorry, this site is for adults ${min}+`;
+    $("#gateText").textContent=`You must be ${min} or older to use MyBettingBuddy. If you or someone you know has a gambling problem, call or text 1-800-GAMBLER.`;$("#gateForm").hidden=true};
+  if(saved&&saved.under&&Date.now()-saved.t<864e5){block(saved.min||21);return}
+  const err=m=>{$("#gateErr").textContent=m;$("#gateErr").hidden=!m};
+  ["dobM","dobD"].forEach((id,i)=>$("#"+id).addEventListener("input",e=>{e.target.value=e.target.value.replace(/\D/g,"");if(e.target.value.length===2)$(i?"#dobY":"#dobD").focus()}));
+  $("#dobY").addEventListener("input",e=>{e.target.value=e.target.value.replace(/\D/g,"")});
+  $("#gateForm").addEventListener("submit",e=>{e.preventDefault();
+    const st=sel.value,m=+$("#dobM").value,d=+$("#dobD").value,y=+$("#dobY").value,now=new Date();
+    if(!st)return err("Choose your state, or Outside the US.");
+    const dob=new Date(y,m-1,d);
+    if(!(y>1900&&y<=now.getFullYear()&&m>=1&&m<=12&&d>=1&&dob.getMonth()===m-1&&dob.getDate()===d))return err("Enter a real date of birth (MM / DD / YYYY).");
+    let age=now.getFullYear()-y;if(now.getMonth()<m-1||(now.getMonth()===m-1&&now.getDate()<d))age--;
+    const min=minAge(st);
+    if(age<min){SS("mbb_age2",JSON.stringify({under:true,min,st,t:Date.now()}));return block(min)}
+    SS("mbb_age2",JSON.stringify({ok:true,st,t:Date.now()}));AGE.st=st;AGE.min=min;
+    const name=(US_STATES.find(x=>x[0]===st)||[])[1];
+    const note=NO_SB.has(st)?`Sports betting isn't legal in ${name} right now. You can still use MyBettingBuddy for research and entertainment, but don't place bets where it's illegal.`
+      :RETAIL_SB.has(st)?`In ${name}, sports betting is limited to in-person or on-site sportsbooks. Check your state's rules before you bet.`
+      :st==="XX"?"MyBettingBuddy is built around US sportsbooks and US betting rules. Follow the laws where you live.":"";
+    if(!note){g.hidden=true;try{render()}catch(_){}return}
+    $("#gateForm").hidden=true;$("#gateTitle").textContent="One thing first";$("#gateText").innerHTML=`<span class="gate-note">${esc(note)}</span>`;
+    $("#gateBtns").hidden=false;$("#gateOk").focus();$("#gateOk").addEventListener("click",()=>{g.hidden=true;try{render()}catch(_){}})});
 })();
 
 /* terms modal */
