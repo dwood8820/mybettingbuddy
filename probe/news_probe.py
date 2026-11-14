@@ -29,6 +29,8 @@ for k, path in L.items():
         tid = ev["competitions"][0]["competitors"][0]["team"]["id"]
         tn = get(f"https://site.api.espn.com/apis/site/v2/sports/{path}/news?team={tid}&limit=5")
         out["team_news_n"] = len(tn.get("articles", []))
+        out["inj_full"] = (inj[0].get("injuries") or [None])[0] if inj else None
+        out["team_news_full"] = tn.get("articles", [])[:2]
         out["team_news_sample"] = [{k2: a.get(k2) for k2 in ("headline", "description", "published", "type")} | {"link": ((a.get("links") or {}).get("web") or {}).get("href")} for a in tn.get("articles", [])[:3]]
     except Exception as e:
         out["error"] = repr(e)
