@@ -47,6 +47,19 @@ button{font:inherit;color:inherit}
 .navtab[aria-current="page"]{color:var(--text);border-bottom-color:var(--accent)}
 .navdiv{width:1px;height:22px;background:var(--line2);flex:none;margin:0 8px}
 .navlab{font-size:10.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin:0 4px 0 2px;white-space:nowrap;flex:none}
+@media (min-width:901px){ /* wider screens: the two groups split the full content width, tabs share their half evenly */
+  .mainnav{overflow:visible;gap:0}
+  .navgrp{flex:1 1 0;min-width:0}
+  .navtab{flex:1 1 0;justify-content:center;font-size:14.5px;padding:13px 2px 10px;gap:5px}
+  .navlab{font-size:10.5px;letter-spacing:.8px;margin:0 6px 0 0}
+  .navdiv{height:26px;margin:0 10px}
+}
+@media (min-width:1180px){
+  .navtab{font-size:17px;padding:14px 6px 11px;gap:8px}
+  .navtab svg{width:18px;height:18px}
+  .navlab{font-size:13px;letter-spacing:1.3px;margin:0 14px 0 0}
+  .navdiv{height:30px;margin:0 22px}
+}
 .hero{margin-bottom:16px;padding:22px 22px 48px}
 .eyebrow{font-size:11.5px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:#CFE8D8;opacity:.85}
 .hero .wk{font-size:34px;line-height:1.1;margin:4px 0}
