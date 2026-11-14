@@ -163,6 +163,13 @@ button{font:inherit;color:inherit}
 .news .src{font-size:11px;color:var(--muted);padding-top:8px;border-top:1px solid var(--line)}
 .news .key-note{font-size:11px;color:var(--muted);margin:6px 0 0}
 .rail{display:flex;flex-direction:column;gap:8px}
+.drop{display:flex;flex-direction:column;gap:12px;margin:0 0 10px;animation:dropIn .18s ease-out}
+.drop[hidden]{display:none}
+@keyframes dropIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.drop{animation:none}}
+.gc[aria-expanded] .gc-head>span:first-child::after{content:"";display:inline-block;width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin:0 0 3px 8px;transition:transform .15s}
+.gc[aria-expanded="true"] .gc-head>span:first-child::after{transform:rotate(-135deg);margin-bottom:-1px}
+.gc[aria-expanded="true"]{border-bottom-left-radius:var(--r);border-bottom-right-radius:var(--r)}
 @media (min-width:901px){.rail{position:sticky;top:116px;max-height:calc(100vh - 132px);overflow:auto;padding-right:4px}}
 
 /* game card (odds board row) */
@@ -641,7 +648,7 @@ const RETAIL_SB=new Set(["MS","NE","NM","ND","SD","WA","WI","MT"]);             
 const US_STATES=[["AL","Alabama"],["AK","Alaska"],["AZ","Arizona"],["AR","Arkansas"],["CA","California"],["CO","Colorado"],["CT","Connecticut"],["DE","Delaware"],["DC","District of Columbia"],["FL","Florida"],["GA","Georgia"],["HI","Hawaii"],["ID","Idaho"],["IL","Illinois"],["IN","Indiana"],["IA","Iowa"],["KS","Kansas"],["KY","Kentucky"],["LA","Louisiana"],["ME","Maine"],["MD","Maryland"],["MA","Massachusetts"],["MI","Michigan"],["MN","Minnesota"],["MS","Mississippi"],["MO","Missouri"],["MT","Montana"],["NE","Nebraska"],["NV","Nevada"],["NH","New Hampshire"],["NJ","New Jersey"],["NM","New Mexico"],["NY","New York"],["NC","North Carolina"],["ND","North Dakota"],["OH","Ohio"],["OK","Oklahoma"],["OR","Oregon"],["PA","Pennsylvania"],["RI","Rhode Island"],["SC","South Carolina"],["SD","South Dakota"],["TN","Tennessee"],["TX","Texas"],["UT","Utah"],["VT","Vermont"],["VA","Virginia"],["WA","Washington"],["WV","West Virginia"],["WI","Wisconsin"],["WY","Wyoming"],["XX","Outside the US"]];
 const minAge=st=>AGE18.has(st)?18:21;
 const AGE={st:null,min:21};
-let _phone=innerWidth<600;addEventListener("resize",()=>{const p=innerWidth<600;if(p!==_phone){_phone=p;try{render()}catch(_){}}});
+let _phone=innerWidth<600,_narrow=innerWidth<=900;addEventListener("resize",()=>{const p=innerWidth<600,n=innerWidth<=900;if(p!==_phone||n!==_narrow){_phone=p;_narrow=n;try{render()}catch(_){}}});
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const sgn=(v,d=1)=>v==null||isNaN(v)?"—":(v>0?"+":v<0?"−":"")+Math.abs(v).toFixed(d).replace(/\.0$/,"");
 const lineTxt=v=>v===0?"PK":sgn(v);
@@ -1243,7 +1250,10 @@ function renderGames(){
   if(!state.game){const w=pickWanted();if(w){state.game=w.g.id;state.team=w.t||null;if(w.t&&state.view==="totals")state.ouMode="team"}else{const up=D.slate.find(g=>!g.final)||D.slate[0];state.game=up.id}}
   const rail=gameCards(state.game,true);
   $("#view").innerHTML=`<div class="grid g3"><aside class="rail" aria-label="This week's games">${rail}</aside><div id="detail"></div><aside id="news" class="news" aria-label="Injuries and news"></aside></div>`;
-  $(".rail").addEventListener("click",e=>{const b=e.target.closest("[data-g]");if(!b)return;const t=e.target.closest("[data-t]");const g=D.slate.find(x=>x.id===b.dataset.g);if(b.dataset.g!==state.game||t){state.team=t?t.dataset.t:g.away}if(t&&state.view==="totals")state.ouMode="team";state.game=b.dataset.g;renderGames();if(innerWidth<=900)$("#detail").scrollIntoView({behavior:"smooth",block:"start"})});
+  $(".rail").addEventListener("click",e=>{const b=e.target.closest("[data-g]");if(!b)return;const t=e.target.closest("[data-t]");
+    if(NARROW()&&b.dataset.g===state.game&&!t)return toggleDrop(b);
+    const g=D.slate.find(x=>x.id===b.dataset.g);if(b.dataset.g!==state.game||t){state.team=t?t.dataset.t:g.away}if(t&&state.view==="totals")state.ouMode="team";state.game=b.dataset.g;state.mclosed=false;renderGames();if(NARROW())cardTop(state.game)});
+  placeDrop(state.game);
   renderGameDetail();renderNews(D.slate.find(x=>x.id===state.game));
 }
 /* ---------- week-by-week line chart ---------- */
@@ -1628,6 +1638,16 @@ function confList(){if(D.sport==="ncaaf")return CONFS;const n={};D.slate.forEach
 function confChips(){if(D.sport!=="ncaaf"&&D.sport!=="ncaab")return "";const c=state.conf||"ALL";
   return `<div class="confs" role="group" aria-label="Conference">${confList().filter(k=>k==="ALL"||k==="TOP25"||D.slate.some(g=>g.aconf===k||g.hconf===k)).map(k=>`<button data-conf="${k}" aria-pressed="${c===k}">${k==="ALL"?"All":k==="TOP25"?"Top 25":k}</button>`).join("")}</div>`}
 const rk25=(g,ab)=>{const r=ab===g.away?g.ar:g.hr;return r&&r<=25?`<small class="rk">${r}</small>`:""};
+/* phones and small tablets: the chosen game's chart opens as a drop-down right under its card */
+const NARROW=()=>innerWidth<=900;
+function placeDrop(id){const det=$("#detail"),nw=$("#news"),card=document.querySelector(`.rail .gc[data-g="${id}"]`);
+  if(!NARROW()||!det||!card)return;
+  const wrap=document.createElement("div");wrap.className="drop";wrap.id="drop";wrap.hidden=!!state.mclosed;
+  card.after(wrap);wrap.append(det,nw);card.setAttribute("aria-expanded",String(!state.mclosed));card.setAttribute("aria-controls","drop")}
+function toggleDrop(card){state.mclosed=!state.mclosed;const w=$("#drop");if(w)w.hidden=state.mclosed;card.setAttribute("aria-expanded",String(!state.mclosed));if(!state.mclosed)cardTop(card.dataset.g)}
+function cardTop(id){const c=document.querySelector(`.rail .gc[data-g="${id}"]`);if(!c)return;
+  const top=document.querySelector(".top"),off=(top&&getComputedStyle(top).position==="sticky"?top.getBoundingClientRect().height:0)+10; // clear the sticky header
+  scrollTo({top:scrollY+c.getBoundingClientRect().top-off,behavior:"smooth"})}
 function gameCards(active,teamLinks){
   const c=state.conf||"ALL";
   return confChips()+D.slate.filter(g=>c==="ALL"||(c==="TOP25"?(g.ar<=25||g.hr<=25):(g.aconf===c||g.hconf===c))).map(g=>{
@@ -1699,7 +1719,10 @@ function moveRow(g){
 function renderPlayers(){
   if(!state.pgame){const w=pickWanted();state.pgame=w?w.g.id:(D.slate.find(g=>!g.final)||D.slate[0]).id}
   $("#view").innerHTML=`<div class="grid g3"><aside class="rail" aria-label="This week's games">${gameCards(state.pgame)}</aside><div id="detail"></div><aside id="news" class="news" aria-label="Injuries and news"></aside></div>`;
-  $(".rail").addEventListener("click",e=>{const b=e.target.closest("[data-g]");if(!b)return;state.pgame=b.dataset.g;state.popen=null;renderPlayers();if(innerWidth<=900)$("#detail").scrollIntoView({behavior:"smooth",block:"start"})});
+  $(".rail").addEventListener("click",e=>{const b=e.target.closest("[data-g]");if(!b)return;
+    if(NARROW()&&b.dataset.g===state.pgame)return toggleDrop(b);
+    state.pgame=b.dataset.g;state.popen=null;state.mclosed=false;renderPlayers();if(NARROW())cardTop(state.pgame)});
+  placeDrop(state.pgame);
   renderPropBoard();renderNews(D.slate.find(x=>x.id===state.pgame));
 }
 function renderPropBoard(){
