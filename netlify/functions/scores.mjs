@@ -1,9 +1,10 @@
-// Live scores for this week's games, from ESPN's public scoreboard: ?sport=nfl (default), ncaaf (FBS) or nba.
+// Live scores for this week's games, from ESPN's public scoreboard: ?sport=nfl (default), ncaaf (FBS), nba or ncaab (D1).
 // Netlify's CDN caches each sport's response for 60 seconds, so every visitor shares one lookup a minute.
 const ESPN = {
   nfl: "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard",
   ncaaf: "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=300",
   nba: "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard",
+  ncaab: "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?groups=50&limit=500",
 };
 const NFL_ABBR = { WSH: "WAS", LAR: "LA" }; // ESPN -> nflverse team codes
 

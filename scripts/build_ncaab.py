@@ -78,13 +78,28 @@ def closing_line(gid):
     return None
 
 
+SHORT = {"Atlantic Coast": "ACC", "Southeastern": "SEC", "Big Ten": "Big Ten", "Big 12": "Big 12", "Big East": "Big East",
+         "Atlantic 10": "A-10", "Metro Atlantic Athletic": "MAAC", "Coastal Athletic Association": "CAA", "Ohio Valley": "OVC",
+         "Mid-American": "MAC", "Mid-Eastern Athletic": "MEAC", "Southwestern Athletic": "SWAC", "Western Athletic": "WAC",
+         "Missouri Valley": "Missouri Valley", "Mountain West": "Mountain West", "West Coast": "WCC", "American Athletic": "American",
+         "Conference USA": "C-USA", "Atlantic Sun": "ASUN", "ASUN": "ASUN", "Southern": "SoCon", "Southland": "Southland",
+         "Horizon League": "Horizon", "Northeast": "NEC", "Patriot League": "Patriot", "Ivy League": "Ivy", "Big Sky": "Big Sky",
+         "Big South": "Big South", "Big West": "Big West", "Summit League": "Summit", "Sun Belt": "Sun Belt", "America East": "America East"}
+
+
+def conf_name(c):
+    raw = c.get("name") or c.get("shortName") or c.get("abbreviation") or ""
+    base = raw.replace(" Conference", "").replace(" Men's Basketball", "").strip()
+    return SHORT.get(base) or c.get("shortName") or base or raw
+
+
 def conferences():
     """team id -> conference short name, for every D1 team, from ESPN's standings."""
     out = {}
     try:
         d = get_json(STAND)
         for c in d.get("children", []):
-            name = c.get("abbreviation") or c.get("shortName") or c.get("name")
+            name = conf_name(c)
             for e in (c.get("standings") or {}).get("entries", []):
                 out[str(e["team"]["id"])] = name
     except Exception as e:
