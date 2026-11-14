@@ -1160,7 +1160,7 @@ function lineChart(games,series,line,opt={}){
   series.forEach(se=>{
     if(se.off)return;
     const pts=se.vals.map((v,i)=>v==null?null:[x(i),y(v)]);
-    let d="",pen=false;pts.forEach(p=>{if(!p){pen=false;return}d+=(pen?"L":"M")+p[0].toFixed(1)+","+p[1].toFixed(1);pen=true});
+    let d="",pen=false;pts.forEach(p=>{if(!p)return;d+=(pen?"L":"M")+p[0].toFixed(1)+","+p[1].toFixed(1);pen=true}); // bridge byes and weeks without a value
     if(d)s+=`<path d="${d}" fill="none" stroke="${se.color}" stroke-width="${se.w}" stroke-linejoin="round" stroke-linecap="round"/>`;
     pts.forEach((p,i)=>{if(!p)return;const last=i===pts.length-1||pts.slice(i+1).every(q=>!q);
       if(se.dots||last||pts.filter(Boolean).length===1)s+=`<circle cx="${p[0]}" cy="${p[1]}" r="${se.dots?5:4}" fill="${se.color}" stroke="var(--panel)" stroke-width="2"/>`});
