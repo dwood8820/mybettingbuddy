@@ -6,7 +6,7 @@ on:
   workflow_dispatch:          # "Run workflow" button for an on-demand refresh
   push:                       # rebuild right away when a data builder changes
     branches: [main]
-    paths: ["scripts/build_data.py", "scripts/build_ncaaf.py", ".github/workflows/refresh-data.yml"]
+    paths: ["scripts/build_data.py", "scripts/build_ncaaf.py", "scripts/build_nba.py", ".github/workflows/refresh-data.yml"]
 
 permissions:
   contents: write
@@ -24,11 +24,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: pip install pandas==2.2.3
+      - run: pip install pandas==2.2.3 pyarrow==17.0.0
       - name: Build NFL data files
         run: python scripts/build_data.py --out out
       - name: Build NCAAF data files
         run: python scripts/build_ncaaf.py --out out --cache "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/data/ncaaf_lines.json"
+      - name: Build NBA data files
+        run: python scripts/build_nba.py --out out --cache "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/data/nba_lines.json"
       - name: Publish to the data branch
         run: |
           cd out

@@ -213,7 +213,7 @@ def main():
                 slate, label = sb, day.strftime("%a, %b %-d")
                 break
     for g in slate:
-        o = g.pop("odds") or cache.get(g["id"]) or {}
+        o = g.pop("odds") or cache.get(g["id"]) or (None if a.no_espn else closing_line(g["id"])) or {}
         g.update({"spread": o.get("spread"), "total": o.get("total"), "aml": o.get("aml"), "hml": o.get("hml"), "wk": label})
 
     # ---- players (current season) and prop history (last three seasons)
@@ -261,7 +261,8 @@ def main():
             continue
         key = (r.game_id, r.team_abbreviation)
         if key not in out:
-            out[key] = [s, w, r.team_abbreviation, r.opponent_team_abbreviation, 1 if r.home_away == "home" else 0, []]
+            gd = pd.Timestamp(r.game_date)
+            out[key] = [s, w, r.team_abbreviation, r.opponent_team_abbreviation, 1 if r.home_away == "home" else 0, [], f"{gd.month}/{gd.day}"]
         if r.athlete_id not in pidx:
             pidx[r.athlete_id] = len(plist); plist.append([r.athlete_display_name, grp(r.athlete_position_abbreviation)])
         out[key][5].append([pidx[r.athlete_id], int(r.points), int(r.rebounds), int(r.assists), int(r.three_point_field_goals_made),

@@ -1,13 +1,15 @@
-// Live scores for this week's games, from ESPN's public scoreboard: ?sport=nfl (default) or ?sport=ncaaf (FBS).
+// Live scores for this week's games, from ESPN's public scoreboard: ?sport=nfl (default), ncaaf (FBS) or nba.
 // Netlify's CDN caches each sport's response for 60 seconds, so every visitor shares one lookup a minute.
 const ESPN = {
   nfl: "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard",
   ncaaf: "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=300",
+  nba: "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard",
 };
 const NFL_ABBR = { WSH: "WAS", LAR: "LA" }; // ESPN -> nflverse team codes
 
 export default async (req) => {
-  const sport = new URL(req.url).searchParams.get("sport") === "ncaaf" ? "ncaaf" : "nfl";
+  const q = new URL(req.url).searchParams.get("sport");
+  const sport = ESPN[q] ? q : "nfl";
   const ABBR = sport === "nfl" ? NFL_ABBR : {};
   let d;
   try {
