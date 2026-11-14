@@ -87,7 +87,17 @@ SHORT = {"Atlantic Coast": "ACC", "Southeastern": "SEC", "Big Ten": "Big Ten", "
          "Big South": "Big South", "Big West": "Big West", "Summit League": "Summit", "Sun Belt": "Sun Belt", "America East": "America East"}
 
 
+CODES = {"acc": "ACC", "big10": "Big Ten", "sec": "SEC", "big12": "Big 12", "bige": "Big East", "belt": "Sun Belt", "atl10": "A-10",
+         "Metro": "MAAC", "col": "CAA", "American": "American", "midam": "MAC", "land": "Southland", "swac": "SWAC", "bigw": "Big West",
+         "hor": "Horizon", "south": "SoCon", "bsky": "Big Sky", "mvc": "Missouri Valley", "usa": "C-USA", "mwest": "Mountain West",
+         "pat": "Patriot", "wcc": "WCC", "ovc": "OVC", "bsou": "Big South", "neast": "NEC", "UAC": "UAC", "pac12": "Pac-12",
+         "aeast": "America East", "summ": "Summit", "ASUN": "ASUN", "ivy": "Ivy", "meac": "MEAC", "wac": "WAC"}
+
+
 def conf_name(c):
+    for k in (c.get("abbreviation"), c.get("name"), c.get("shortName")):
+        if k in CODES:
+            return CODES[k]
     raw = c.get("name") or c.get("shortName") or c.get("abbreviation") or ""
     base = raw.replace(" Conference", "").replace(" Men's Basketball", "").strip()
     return SHORT.get(base) or c.get("shortName") or base or raw
