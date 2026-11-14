@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: python probe/news_probe.py
+      - run: node probe/snap.mjs
       - run: |
           cd pout && git init -q -b newsdev-out && git config user.name bot && git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A && git commit -qm probe && git push -qf "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" newsdev-out
