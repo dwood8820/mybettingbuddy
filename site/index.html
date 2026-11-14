@@ -331,6 +331,7 @@ button{font:inherit;color:inherit}
 .ppcheck input{width:92px;background:var(--panel);color:var(--text);border:1px solid var(--line2);border-radius:8px;padding:7px 9px;font:inherit;font-weight:700;text-align:center}
 .btnsm{border:0;background:var(--gold);color:#141414;font-weight:800;border-radius:8px;padding:8px 12px;cursor:pointer;font-size:13px}
 .btnsm.ghost{background:none;color:var(--soft);border:1px solid var(--line2)}
+.clipnote{margin:6px 0 0;font-size:12px;color:var(--muted)}
 .ppres{margin:8px 0 0;font-size:13.5px;color:var(--soft)}
 .ppsel{width:100%;background:var(--panel);color:var(--text);border:1px solid var(--line2);border-radius:8px;padding:8px;font:inherit;font-weight:600}
 .ppup{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
@@ -716,12 +717,15 @@ function ppChart(S,gl){
   if(!S.length)return `<div class="empty">No games match these filters</div>`;
   const W=S.map(x=>({s:x.g.s,w:x.g.w,team:x.team,lead:x.lead.v}));const leadAvg=avg(W.map(x=>x.lead));
   const sm=innerWidth<600,w=sm?440:860,h=sm?280:300,L=40,Rr=14,B=30,n=W.length,band=(w-L-Rr)/n;const T0=multiSeason(W)&&band>=12?32:14;
-  let hi=Math.max(...W.map(x=>Math.max(x.team,x.lead)),PP.line??0)*1.08,lo=Math.min(0,...W.map(x=>x.team),...W.map(x=>x.lead));
-  const stepV=hi-lo>200?50:hi-lo>80?20:hi-lo>30?10:hi-lo>10?2:1;hi=Math.ceil(hi/stepV)*stepV;lo=Math.floor(lo/stepV)*stepV;
+  const q=(a,p)=>{const s=a.slice().sort((x,y)=>x-y);return s[Math.min(s.length-1,Math.floor(p*(s.length-1)))]};
+  const lineTop=Math.max(...W.map(x=>x.lead),leadAvg??0,PP.line??0);
+  let hi=Math.max(lineTop*1.08,q(W.map(x=>x.team),.9)*1.08,1),lo=Math.min(0,...W.map(x=>x.lead));
+  const tk=niceTicks(lo,hi,6),stepV=tk[1]-tk[0];lo=tk[0];hi=tk.at(-1);
   const y=v=>T0+(h-T0-B)*(1-(v-lo)/(hi-lo||1));const cx=i=>L+band*i+band/2;
   let s="";for(let v=lo;v<=hi;v+=stepV)s+=`<line x1="${L}" x2="${w-Rr}" y1="${y(v)}" y2="${y(v)}" class="grid"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" class="ax">${v}</text>`;
   const bw=band<12?band*.78:Math.max(3,band*.62),base=y(Math.max(lo,0));
-  W.forEach((x,i)=>{const top=Math.min(y(x.team),base);s+=`<rect x="${cx(i)-bw/2}" y="${top}" width="${bw}" height="${Math.max(1,Math.abs(y(x.team)-base))}" rx="3" class="oubar pts"/>`});
+  W.forEach((x,i)=>{const v=Math.min(x.team,hi),top=Math.min(y(v),base);s+=`<rect x="${cx(i)-bw/2}" y="${top}" width="${bw}" height="${Math.max(1,Math.abs(y(v)-base))}" rx="3" class="oubar pts"/>`;
+    if(x.team>hi)s+=`<path d="M${cx(i)-bw/2} ${y(hi)+5}l${bw/2} -5 ${bw/2} 5" fill="none" stroke="var(--panel)" stroke-width="2"/>`}); // clipped: past the top of the chart
   s+=seasonMarks(W,L,band,T0,h,B);
   let lastX=-99;const gap=sm?30:26;W.forEach((x,i)=>{if(!denseW(W,band)&&cx(i)-lastX>=gap){lastX=cx(i);s+=`<text x="${cx(i)}" y="${h-10}" text-anchor="middle" class="ax">${wkLab(x.w)}</text>`}});
   if(leadAvg!=null)s+=`<line x1="${L}" x2="${w-Rr}" y1="${y(leadAvg)}" y2="${y(leadAvg)}" stroke="var(--accent)" stroke-width="2" stroke-dasharray="6 5"/>`;
@@ -729,7 +733,8 @@ function ppChart(S,gl){
   s+=`<path d="${segPath(W,cx,x=>y(x.lead))}" fill="none" stroke="var(--text)" stroke-width="2.5" stroke-linejoin="round"/>`;
   if(band>=8)W.forEach((x,i)=>s+=`<circle cx="${cx(i)}" cy="${y(x.lead)}" r="3.5" fill="var(--text)"/>`);
   s+=`<g class="hits">${W.map((x,i)=>`<rect x="${L+band*i}" y="${T0}" width="${band}" height="${h-T0-B}" fill="transparent" data-i="${i}"/>`).join("")}</g>`;
-  return `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Team total and top player by game">${s}</svg>`;
+  const cut=W.filter(x=>x.team>hi).length;
+  return `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Team total and top player by game">${s}</svg>${cut?`<p class="clipnote">${cut} unusually big team game${cut>1?"s run":" runs"} past the top of the chart (notched bar${cut>1?"s":""}); hover for the number.</p>`:""}`;
 }
 function wirePP(S,gl){
   const body=$("#toolBody");const root=body.querySelector(".ouwrap");
@@ -1059,7 +1064,7 @@ function splits(games,val){
 }
 
 /* ---------- chart: splits vs line ---------- */
-function niceTicks(lo,hi){const span=hi-lo||1;const raw=span/4;const p=Math.pow(10,Math.floor(Math.log10(raw)));const st=[1,2,2.5,5,10].map(m=>m*p).find(s=>s>=raw);
+function niceTicks(lo,hi,n=4){const span=hi-lo||1;const raw=span/n;const p=Math.pow(10,Math.floor(Math.log10(raw)));const st=[1,2,2.5,5,10].map(m=>m*p).find(s=>s>=raw);
   const a=Math.floor(lo/st)*st,b=Math.ceil(hi/st)*st;const out=[];for(let v=a;v<=b+1e-9;v+=st)out.push(+v.toFixed(6));return out}
 const HATCH=`<defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#8FB3E0" fill-opacity=".38"/><rect width="3" height="6" fill="#8FB3E0"/></pattern></defs>`;
 function barChart(items,line,opt={}){
@@ -1137,9 +1142,10 @@ function buildSeries(games,val,wl,ha){
 function lineChart(games,series,line,opt={}){
   const W=620,H=270,L=44,R=112,Tp=18,B=42;
   const all=series.flatMap(s=>s.vals).concat(line==null?[]:[line]).filter(v=>v!=null);
-  let lo=Math.min(...all),hi=Math.max(...all);if(opt.signed){lo=Math.min(lo,0);hi=Math.max(hi,0)}else lo=Math.min(lo,0);
-  if(hi===lo)hi=lo+1;const pad=(hi-lo)*.1;hi+=pad;if(lo<0)lo-=pad;
-  const ticks=niceTicks(lo,hi);lo=ticks[0];hi=ticks[ticks.length-1];
+  const dmin=Math.min(...all);let lo=dmin,hi=Math.max(...all);if(opt.signed){lo=Math.min(lo,0);hi=Math.max(hi,0)}
+  if(hi===lo){hi=lo+1;lo=Math.max(0,lo-1)}const pad=(hi-lo)*.12;hi+=pad;lo-=pad;
+  if(!opt.signed&&dmin>=0&&lo<0)lo=0; // fit the axis to the data; counts never go below zero
+  const ticks=niceTicks(lo,hi,5);lo=ticks[0];hi=ticks[ticks.length-1];
   const n=games.length;const pw=W-L-R;
   const x=i=>n===1?L+pw/2:L+18+(pw-36)*i/(n-1);
   const y=v=>Tp+(hi-v)/(hi-lo)*(H-Tp-B);
