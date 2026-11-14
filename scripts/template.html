@@ -107,6 +107,26 @@ button{font:inherit;color:inherit}
 #detail{min-width:0}
 @media (min-width:1400px){:root{--maxw:1580px}.grid.g3{grid-template-columns:330px minmax(0,1fr) 290px}}
 @media (min-width:901px) and (max-width:1399px){.grid.g3 #news{grid-column:2}}
+.sit{padding:16px 20px 14px;border-top:1px solid var(--line)}
+.sit-h{display:flex;align-items:baseline;gap:6px 12px;flex-wrap:wrap;margin-bottom:8px}
+.sit-h h3{font-family:var(--display);font-size:17px;letter-spacing:.8px;text-transform:uppercase;margin:0}
+.sit-h span{font-size:12px;color:var(--muted)}
+.sit-scroll{overflow-x:auto}
+.sit-t{width:100%;border-collapse:collapse;font-size:13.5px;min-width:320px}
+.sit-t thead th{font-size:12px;font-weight:700;color:var(--soft);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line2);white-space:nowrap}
+.sit-t thead th .chip{vertical-align:-3px;margin-right:4px}
+.sit-t tbody th{font-weight:500;color:var(--soft);text-align:left;padding:7px 8px;white-space:nowrap}
+.sit-t td{padding:5px 8px;border-left:1px solid var(--line)}
+.sit-t tbody tr{border-bottom:1px solid var(--line)}
+.sit-t tbody tr:first-child th{color:var(--text);font-weight:700}
+.sit-t td .sv{font-weight:700;margin-right:8px}
+.sit-t td .sa{font-size:12px;color:var(--muted)}
+.sit-t td .sa.pos{color:var(--over)}.sit-t td .sa.neg{color:#FF7A88}
+.sit-t td.now{background:rgba(244,193,79,.09);box-shadow:inset 3px 0 0 var(--gold)}
+.sit-t td.thin{opacity:.5}
+.sit-note{font-size:11.5px;color:var(--muted);margin:8px 0 0}
+.sit-key{display:inline-block;width:10px;height:10px;background:rgba(244,193,79,.25);box-shadow:inset 3px 0 0 var(--gold);margin-right:6px;vertical-align:-1px}
+@media (max-width:600px){.sit{padding:14px 12px}.sit-t{font-size:12.5px}.sit-t td .sv{margin-right:4px}.sit-t td,.sit-t th{padding-inline:6px}}
 .mvrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;padding:9px 18px;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--muted);background:rgba(255,255,255,.015)}
 .mvrow .mv-h{font-size:10.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gold)}
 .mvrow em{font-style:normal;color:var(--soft);font-weight:600;margin-right:3px}
@@ -1389,6 +1409,7 @@ function renderGameDetail(){
     ${matchHead(g,!isGame)}
     ${ou?`<div class="ctlbar ou3">${mseg}</div>`:""}
     <div class="two">${S.html}</div>
+    ${sitHtml(g,ou)}
   </div>`;
   const sec=$("#detail section.side");const c=sec.querySelector(".c-line svg");
   if(c)wireLine(sec.querySelector(".c-line"),S.games,S.series,S.line??S.exp,S.opt,xFor(S.games.length));onCtl(sec,renderGameDetail);
@@ -1596,6 +1617,36 @@ function matchHead(g,pick){
       ${mt(g.home)}${chip(g.home)}<div><div class="t">${esc(T[g.home].nick)}${g.final?` <span class="num">${g.hs}</span>`:""}</div><div class="s">${esc(T[g.home].name)}</div></div>${me}
       <div class="mh-lines"><span class="pill">${statusTxt(g)}</span>${g.spread==null?"":`<span class="pill">Spread <b class="num">${fav} ${lineTxt(-Math.abs(g.spread))}</b></span><span class="pill">Total <b class="num">${fx(g.total)}</b></span>`}</div>
     </div>${moveRow(g)}`;
+}
+
+/* ---------- situational trends: both teams' record this season by rest, last result and role ---------- */
+const dayN=s=>s?Math.round(Date.parse(s+"T12:00:00Z")/864e5):null;
+function teamLog(ab){return (D.tg[ab]||[]).map((x,i)=>({...x,i})).sort((a,b)=>(a.d&&b.d?a.d.localeCompare(b.d):0)||a.i-b.i)}
+function restBucket(days){const H=HOOPS(state.sport);if(days==null)return null;
+  if(H)return days<=1?"b2b":days===2?"r1":"r2";return days<=5?"short":days<=8?"norm":"long"}
+function sitHtml(g,ou){
+  if(g.spread==null)return"";
+  const H=HOOPS(state.sport),hasDates=[g.away,g.home].some(ab=>(D.tg[ab]||[]).some(x=>x.d));
+  const REST=H?[["b2b","Back-to-back (no rest)"],["r1","1 day of rest"],["r2","2+ days of rest"]]:[["short","Short week (≤5 days)"],["norm","Normal week (6–8 days)"],["long","Extra rest (9+ days)"]];
+  const rows=[["all","All games"],["pW","After a win"],["pL","After a loss"],...(hasDates?REST:[]),["fav","As the favorite"],["dog","As the underdog"]];
+  const tag=(ab)=>{const L=teamLog(ab);return L.map((x,k)=>{const prev=L[k-1];const t=new Set(["all"]);
+      if(prev){t.add(prev.res==="W"?"pW":prev.res==="L"?"pL":"pT");const rb=x.d&&prev.d?restBucket(dayN(x.d)-dayN(prev.d)):null;if(rb)t.add(rb)}
+      if(x.exp!=null&&x.exp!==0)t.add(x.exp>0?"fav":"dog");return {x,t}})};
+  const now=ab=>{const L=teamLog(ab).filter(x=>!x.d||x.d<g.date);const last=L[L.length-1];const t=new Set(["all"]);
+    if(last){t.add(last.res==="W"?"pW":last.res==="L"?"pL":"pT");const rb=last.d?restBucket(dayN(g.date)-dayN(last.d)):null;if(rb)t.add(rb)}
+    const sp=ab===g.home?g.spread:-g.spread;if(sp)t.add(sp>0?"fav":"dog");return t};
+  const cell=(list,k,on)=>{const gs=list.filter(r=>r.t.has(k)).map(r=>r.x);
+    const v=gs.filter(x=>ou?x.tot!=null:x.exp!=null);
+    if(!v.length)return `<td class="${on?"now":""}"><span class="sv mut">—</span></td>`;
+    let a=0,b=0,p=0;const diffs=v.map(x=>ou?x.pf+x.pa-x.tot:x.m-x.exp);diffs.forEach(d=>d>0?a++:d<0?b++:p++);
+    const av=avg(diffs),thin=v.length<3;
+    return `<td class="${on?"now":""}${thin?" thin":""}"><span class="sv num">${a}-${b}${p?"-"+p:""}</span><span class="sa num ${av>0?"pos":av<0?"neg":""}">${sgn(av)}</span></td>`};
+  const A=tag(g.away),Hh=tag(g.home),nA=now(g.away),nH=now(g.home);
+  const body=rows.map(([k,l])=>`<tr><th scope="row">${l}</th>${cell(A,k,k!=="all"&&nA.has(k))}${cell(Hh,k,k!=="all"&&nH.has(k))}</tr>`).join("");
+  const unit=ou?"Over-under record · avg points vs total":"Record vs spread · avg margin vs spread";
+  return `<div class="sit"><div class="sit-h"><h3>Situations this season</h3><span>${unit}</span></div>
+    <div class="sit-scroll"><table class="sit-t"><thead><tr><th></th><th>${chip(g.away)} ${esc(T[g.away].nick)}</th><th>${chip(g.home)} ${esc(T[g.home].nick)}</th></tr></thead><tbody>${body}</tbody></table></div>
+    <p class="sit-note"><i class="sit-key"></i>Applies to this game${hasDates?"":" · rest splits arrive with the next data refresh"}. Faded = fewer than 3 games.</p></div>`;
 }
 /* line movement: where the line opened vs where it is now (ESPN / DraftKings), shown until kickoff */
 function moveRow(g){

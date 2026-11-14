@@ -51,7 +51,7 @@ def build_current(games, teams, pw, season):
             exp = r.spread_line if side == 'home' else -r.spread_line
             m = pf - pa
             tg[tm].append({'wk': int(r.week), 'opp': op, 'home': side == 'home', 'pf': int(pf), 'pa': int(pa), 'm': int(m),
-                           'exp': num(exp), 'tot': num(r.total_line), 'res': 'W' if m > 0 else ('L' if m < 0 else 'T')})
+                           'exp': num(exp), 'tot': num(r.total_line), 'res': 'W' if m > 0 else ('L' if m < 0 else 'T'), 'd': str(r.gameday)})
             res[(r.game_id, tm)] = (side == 'home', 'W' if m > 0 else ('L' if m < 0 else 'T'))
     for k in tg:
         tg[k].sort(key=lambda x: x['wk'])

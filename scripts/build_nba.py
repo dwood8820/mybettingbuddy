@@ -204,7 +204,7 @@ def main():
         d = pd.Timestamp(r.game_date)
         tg[r.team_abbreviation].append({"wk": len(tg[r.team_abbreviation]) + 1, "lbl": f"{d.month}/{d.day}", "opp": r.opponent_team_abbreviation,
                                         "home": home, "pf": int(r.team_score), "pa": int(r.opponent_team_score), "m": mg, "exp": exp,
-                                        "tot": ln.get("total"), "res": "W" if mg > 0 else "L", "gid": int(r.game_id)})
+                                        "tot": ln.get("total"), "res": "W" if mg > 0 else "L", "gid": int(r.game_id), "d": d.strftime("%Y-%m-%d")})
 
     slate, label = [], ""
     if not a.no_espn:

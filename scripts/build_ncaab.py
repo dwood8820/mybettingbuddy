@@ -246,7 +246,8 @@ def main():
         lst = tg.setdefault(k, [])
         lst.append({"wk": len(lst) + 1, "lbl": f"{d.month}/{d.day}", "opp": K(r.opponent_team_id), "home": home,
                     "pf": int(r.team_score), "pa": int(r.opponent_team_score), "m": mg,
-                    "exp": None if sp is None else (sp if home else -sp), "tot": ln.get("total"), "res": "W" if mg > 0 else "L"})
+                    "exp": None if sp is None else (sp if home else -sp), "tot": ln.get("total"), "res": "W" if mg > 0 else "L",
+                    "d": d.strftime("%Y-%m-%d")})
 
     slate, label = [], ""
     if not a.no_espn:

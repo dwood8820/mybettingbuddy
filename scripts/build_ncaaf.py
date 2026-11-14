@@ -50,6 +50,14 @@ def num(x):
         return None
 
 
+def et_day(iso):
+    """ESPN UTC kickoff -> Eastern calendar date (rest days are counted on game dates)."""
+    try:
+        return (datetime.fromisoformat(str(iso).replace("Z", "+00:00")) - timedelta(hours=5)).strftime("%Y-%m-%d")
+    except ValueError:
+        return str(iso)[:10]
+
+
 def parse_odds(o, home_id):
     """ESPN odds object -> (home-favored spread like nflverse spread_line, total, home ML, away ML)."""
     if not o:
@@ -190,7 +198,7 @@ def main():
             m = pf - pa
             tg[K(me)].append({"wk": e["week"], "opp": K(op), "home": side == "home" and not e["neutral"], "neutral": e["neutral"],
                               "pf": pf, "pa": pa, "m": m, "exp": exp, "tot": ln.get("total"),
-                              "res": "W" if m > 0 else "L" if m < 0 else "T"})
+                              "res": "W" if m > 0 else "L" if m < 0 else "T", "d": et_day(e["date"])})
 
     open_ = [e for e in cur if not e["done"]]
     if open_:
