@@ -1,0 +1,17 @@
+name: News probe
+on:
+  push:
+    branches: [newsdev]
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python probe/news_probe.py
+      - run: |
+          cd pout && git init -q -b newsdev-out && git config user.name bot && git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -qm probe && git push -qf "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" newsdev-out
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
