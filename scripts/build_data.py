@@ -58,7 +58,8 @@ def build_current(games, teams, pw, season):
         slate.append({'id': r.game_id, 'wk': cw, 'date': r.gameday, 'time': r.gametime, 'away': r.away_team, 'home': r.home_team,
                       'final': not pd.isna(r.home_score), 'as': inum(r.away_score), 'hs': inum(r.home_score),
                       'stad': r.stadium_id, 'sname': r.stadium, 'temp': num(r.temp), 'wind': num(r.wind),
-                      'spread': num(r.spread_line), 'total': num(r.total_line), 'aml': num(r.away_moneyline), 'hml': num(r.home_moneyline)})
+                      'spread': num(r.spread_line), 'total': num(r.total_line), 'aml': num(r.away_moneyline), 'hml': num(r.home_moneyline),
+                      'espn': str(int(r.espn)) if 'espn' in g.columns and not pd.isna(r.espn) else None})
     p = pw[(pw.season == season) & (pw.season_type == 'REG') & pw.position.isin(['QB', 'RB', 'WR', 'TE'])].copy()
     players = []
     for pid, d in p.groupby('player_id'):

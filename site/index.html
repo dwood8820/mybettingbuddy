@@ -16,7 +16,7 @@
   --accent:#E0243A; --accent-ink:#FFFFFF;
   --over:#2FC98A; --under:#8FB3E0; --gold:#F4C14F;
   --sel:#45454E; --sel-ink:#FFFFFF;
-  --r:10px;
+  --r:10px; --maxw:1240px;
   --display:"Barlow Condensed","Arial Narrow",Impact,sans-serif;
   --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
@@ -28,7 +28,7 @@ button{font:inherit;color:inherit}
 
 /* ---------- top bar ---------- */
 .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(8,8,10,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-.top-in{max-width:1240px;margin:0 auto;padding-inline:16px;display:flex;align-items:center;gap:20px;min-height:58px;flex-wrap:wrap}
+.top-in{max-width:var(--maxw);margin:0 auto;padding-inline:16px;display:flex;align-items:center;gap:20px;min-height:58px;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:9px;font-family:var(--display);font-weight:800;font-size:23px;letter-spacing:.3px;white-space:nowrap}
 .brand .mark{width:28px;height:28px;border-radius:8px;background:var(--accent);display:grid;place-items:center}
 .brand .mark svg{width:23px;height:23px}
@@ -37,7 +37,7 @@ button{font:inherit;color:inherit}
 .sport{background:none;border:0;padding:6px 14px;border-radius:999px;font-family:var(--display);font-weight:700;font-size:16px;letter-spacing:.8px;color:var(--muted);cursor:pointer;white-space:nowrap}
 .sport:hover{color:var(--soft)}
 .sport[aria-selected="true"]{background:var(--sel);color:var(--text)}
-.nav-in{max-width:1240px;margin:0 auto;padding-inline:16px;border-top:1px solid var(--line)}
+.nav-in{max-width:var(--maxw);margin:0 auto;padding-inline:16px;border-top:1px solid var(--line)}
 .nav-in[hidden]{display:none}
 .mainnav{display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none}
 .mainnav::-webkit-scrollbar{display:none}
@@ -69,7 +69,7 @@ button{font:inherit;color:inherit}
 
 .sport .soon{font-family:var(--body);font-size:9.5px;font-weight:700;letter-spacing:.6px;color:var(--gold);vertical-align:super;margin-left:3px}
 
-.wrap{max-width:1240px;margin:0 auto;padding-inline:16px;padding-block:18px 40px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding-inline:16px;padding-block:18px 40px}
 
 /* ---------- NFL sub nav ---------- */
 .subnav{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}
@@ -105,6 +105,35 @@ button{font:inherit;color:inherit}
 .grid{display:grid;grid-template-columns:340px minmax(0,1fr);gap:18px;align-items:start}
 @media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
 #detail{min-width:0}
+@media (min-width:1400px){:root{--maxw:1580px}.grid.g3{grid-template-columns:330px minmax(0,1fr) 290px}}
+@media (min-width:901px) and (max-width:1399px){.grid.g3 #news{grid-column:2}}
+.news{min-width:0;white-space:normal;overflow-wrap:anywhere}
+@media (min-width:1400px){.news{position:sticky;top:116px;max-height:calc(100vh - 132px);overflow:auto;scrollbar-width:thin}}
+.news .panel{padding:14px 14px 10px}
+.news h3{font-family:var(--display);font-size:17px;letter-spacing:.8px;text-transform:uppercase;margin:0 0 6px;display:flex;align-items:baseline;gap:8px}
+.news h3 .upd{font-family:var(--body);font-size:11px;letter-spacing:0;text-transform:none;color:var(--muted);font-weight:400;margin-left:auto}
+.news .nsec{margin-bottom:14px}
+.news .nteam{font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--soft);margin:10px 0 4px;display:flex;justify-content:space-between;gap:8px}
+.news .nteam span{color:var(--muted);font-weight:500;letter-spacing:.3px}
+.news .inj{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 8px;align-items:start;padding:5px 0;border-top:1px solid var(--line);font-size:13px;line-height:1.3}
+.news .inj .st{font-size:10px;font-weight:700;letter-spacing:.5px;padding:2px 6px;border-radius:4px;text-transform:uppercase;min-width:38px;text-align:center;margin-top:1px;background:var(--raise);color:var(--soft)}
+.news .st.out{background:rgba(224,36,58,.18);color:#FF7A88}
+.news .st.q{background:rgba(244,193,79,.15);color:var(--gold)}
+.news .inj b{font-weight:600}.news .inj b em{font-style:normal;color:var(--muted);font-weight:500;font-size:11px;margin-left:4px}
+.news .key{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);margin-right:5px;vertical-align:1px}
+.news .inj small{display:block;color:var(--muted);font-size:11.5px;margin-top:1px}
+.news details summary{cursor:pointer;color:var(--muted);font-size:12px;padding:5px 0;border-top:1px solid var(--line);list-style:none}
+.news details summary::-webkit-details-marker{display:none}
+.news details[open] summary{display:none}
+.news details summary:hover{color:var(--text)}
+.news .none{color:var(--muted);font-size:12.5px;margin:4px 0 0}
+.news a.nwi{display:block;padding:8px 0;border-top:1px solid var(--line);color:var(--text);text-decoration:none;font-size:13.5px;line-height:1.3;font-weight:500}
+.news a.nwi:hover .nh{text-decoration:underline;text-decoration-color:var(--accent)}
+.news a.nwi .m{display:flex;gap:6px;align-items:center;margin-top:3px;font-size:11px;color:var(--muted);font-weight:400}
+.news a.nwi .tg{font-size:10px;font-weight:700;letter-spacing:.5px;padding:1px 5px;border-radius:3px;background:var(--raise);color:var(--soft)}
+.news a.nwi .tg.gm{background:rgba(224,36,58,.18);color:#FF7A88}
+.news .src{font-size:11px;color:var(--muted);padding-top:8px;border-top:1px solid var(--line)}
+.news .key-note{font-size:11px;color:var(--muted);margin:6px 0 0}
 .rail{display:flex;flex-direction:column;gap:8px}
 @media (min-width:901px){.rail{position:sticky;top:116px;max-height:calc(100vh - 132px);overflow:auto;padding-right:4px}}
 
@@ -463,7 +492,7 @@ table.log td.r,table.log th.r{text-align:right}
 .ou.P{background:var(--raise);color:var(--soft)}
 .tbl{overflow-x:auto;padding:0 20px 18px}
 
-.foot{max-width:1240px;margin:0 auto;padding-inline:16px;padding-block:18px 30px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);display:flex;gap:10px 24px;flex-wrap:wrap}
+.foot{max-width:var(--maxw);margin:0 auto;padding-inline:16px;padding-block:18px 30px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);display:flex;gap:10px 24px;flex-wrap:wrap}
 .foot b{color:var(--soft)}
 
 /* ---------- under construction ---------- */
@@ -505,7 +534,7 @@ table.log td.r,table.log th.r{text-align:right}
 <footer class="foot">
   <p class="disc">MyBettingBuddy is an independent site. It is not affiliated with, endorsed by or sponsored by the NFL, the NCAA, any team, league or sportsbook. Team and sportsbook names belong to their owners. Everything here is for information and entertainment only and is not betting advice. Odds, lines, stats and weather can be delayed or wrong, so confirm with your sportsbook before you bet.</p>
   <span><b>21+ only.</b> Sports betting is legal only in some states. Gambling problem? Call or text 1-800-GAMBLER.</span>
-  <span>NFL stats and lines: nflverse. College scores, lines (DraftKings) and weather: ESPN. Live scores: ESPN. Anytime TD odds: The Odds API. NFL weather: Open-Meteo.</span>
+  <span>NFL stats and lines: nflverse. College scores, lines (DraftKings) and weather: ESPN. Live scores, injuries and news: ESPN. Anytime TD odds: The Odds API. NFL weather: Open-Meteo.</span>
   <span id="upd"></span>
   <button class="linkbtn" id="openTerms" type="button">Terms &amp; Disclaimers</button>
 </footer>
@@ -1136,9 +1165,9 @@ function viewSeg(){return `<div class="seg vseg" role="group" aria-label="View">
 function renderGames(){
   if(!state.game){const up=D.slate.find(g=>!g.final)||D.slate[0];state.game=up.id}
   const rail=gameCards(state.game,true);
-  $("#view").innerHTML=`<div class="grid"><aside class="rail" aria-label="This week's games">${rail}</aside><div id="detail"></div></div>`;
+  $("#view").innerHTML=`<div class="grid g3"><aside class="rail" aria-label="This week's games">${rail}</aside><div id="detail"></div><aside id="news" class="news" aria-label="Injuries and news"></aside></div>`;
   $(".rail").addEventListener("click",e=>{const b=e.target.closest("[data-g]");if(!b)return;const t=e.target.closest("[data-t]");const g=D.slate.find(x=>x.id===b.dataset.g);if(b.dataset.g!==state.game||t){state.team=t?t.dataset.t:g.away}if(t&&state.view==="totals")state.ouMode="team";state.game=b.dataset.g;renderGames();if(innerWidth<=900)$("#detail").scrollIntoView({behavior:"smooth",block:"start"})});
-  renderGameDetail();
+  renderGameDetail();renderNews(D.slate.find(x=>x.id===state.game));
 }
 /* ---------- week-by-week line chart ---------- */
 const COL={act:"#EAEEF6",avg:"#3987E5",wl:"#D95926",ha:"#199E70",line:"#F4C14F"};
@@ -1341,6 +1370,58 @@ function renderGameDetail(){
 }
 
 /* ---------- players ---------- */
+/* ---------- injuries + news: /api/gamenews (Netlify function, ESPN summary + team news, cached 20 min) ---------- */
+const newsCache={};
+const agoTxt=iso=>{if(!iso)return"";const m=Math.max(0,Math.round((Date.now()-Date.parse(iso))/6e4));if(m<60)return m<2?"just now":m+"m ago";const h=Math.round(m/60);if(h<24)return h+"h ago";const d=Math.round(h/24);return d<8?d+"d ago":new Date(iso).toLocaleDateString("en-US",{month:"short",day:"numeric"})};
+const ST_RANK={out:0,"injured reserve":0,suspension:1,doubtful:2,questionable:3,"day-to-day":4,probable:5};
+const stRank=s=>ST_RANK[String(s).toLowerCase()]??6;
+const stCls=s=>{const r=stRank(s);return r<=1?"out":r<=4?"q":""};
+const stShort=s=>({"injured reserve":"IR","day-to-day":"DTD",questionable:"Q",doubtful:"D",probable:"P",suspension:"Susp"}[String(s).toLowerCase()]||s);
+const newsEvent=g=>g.espn||(state.sport!=="nfl"?g.id:null);
+const newsShell=inner=>`<div class="panel"><h3>Injuries &amp; News</h3>${inner}</div>`;
+function renderNews(g){
+  const box=$("#news");if(!box||!g)return;
+  const sp=state.sport,ev=newsEvent(g),key=sp+":"+ev;
+  if(!ev){box.innerHTML=newsShell(`<p class="none">News isn't linked for this game yet.</p>`);return}
+  const have=newsCache[key];
+  if(have&&have!=="loading"){box.innerHTML=newsHtml(g,have);return}
+  box.innerHTML=newsShell(`<div class="loading" role="status"><span class="spin" aria-hidden="true"></span>Loading news…</div>`);
+  if(have==="loading")return;
+  newsCache[key]="loading";
+  const snap=window.NEWS_SNAP&&window.NEWS_SNAP[sp]&&window.NEWS_SNAP[sp][ev];
+  const p=snap?Promise.resolve(snap):fetch(`/api/gamenews?sport=${sp}&event=${ev}`).then(r=>r.ok?r.json():{error:1});
+  p.catch(()=>({error:1})).then(d=>{if(d&&d.error)delete newsCache[key];else newsCache[key]=d;
+    const cur=D.slate.find(x=>x.id===(state.view==="players"?state.pgame:state.game));
+    if(cur&&state.sport===sp&&newsEvent(cur)===ev&&$("#news"))$("#news").innerHTML=newsHtml(cur,d)});
+}
+function keyTest(team){
+  const ids=new Set(),names=new Set();
+  (D.players||[]).forEach(p=>{if(p.team===team){ids.add(String(p.id));names.add(String(p.name).toLowerCase())}});
+  return x=>ids.has(String(x.id))||names.has(String(x.n).toLowerCase());
+}
+function injTeam(side,ab){
+  const T=D.teams[ab]||{},nm=T.name||ab,list=(side&&side.inj)||[],isKey=keyTest(ab);
+  const rows=list.map(x=>({...x,key:isKey(x),cd:/coach'?s decision/i.test(x.what||"")}))
+    .sort((a,b)=>(b.key-a.key)||(a.cd-b.cd)||(stRank(a.st)-stRank(b.st))||a.n.localeCompare(b.n));
+  const ret=x=>x.ret&&stRank(x.st)<=2?`est. return ${new Date(x.ret+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"})}`:"";
+  const row=x=>{const sub=[x.what,ret(x)].filter(Boolean).join(" · ");
+    return `<div class="inj"><span class="st ${stCls(x.st)}" title="${esc(x.st)}">${esc(stShort(x.st))}</span><div><b>${x.key?'<i class="key" title="Has player prop stats on this site"></i>':""}${esc(x.n)}${x.pos?`<em>${esc(x.pos)}</em>`:""}</b>${sub?`<small>${esc(sub)}</small>`:""}</div></div>`};
+  const top=rows.filter(x=>!x.cd).slice(0,5),rest=rows.filter(x=>!top.includes(x));
+  return `<div class="nteam">${esc(nm)}<span>${list.length?list.length+" listed":""}</span></div>`+
+    (list.length?top.map(row).join("")+(rest.length?`<details><summary>Show ${rest.length} more</summary>${rest.map(row).join("")}</details>`:""):`<p class="none">No injuries listed.</p>`);
+}
+function newsHtml(g,d){
+  if(!d||d.error)return newsShell(`<p class="none">Couldn't load news right now. Try again in a few minutes.</p>`);
+  const college=state.sport==="ncaaf"||state.sport==="ncaab";
+  const sideOf=ab=>d.home&&d.home.abbr===ab?d.home:d.away&&d.away.abbr===ab?d.away:ab===g.home?d.home:d.away;
+  const anyKey=hasProps()&&[g.away,g.home].some(ab=>{const s=sideOf(ab),k=keyTest(ab);return s&&s.inj.some(k)});
+  const injHtml=college&&!d.injuriesListed?`<p class="none">ESPN doesn't publish injury reports for college games. Check team beat writers before you bet.</p>`
+    :injTeam(sideOf(g.away),g.away)+injTeam(sideOf(g.home),g.home)+(anyKey?`<p class="key-note"><i class="key"></i>Has player prop stats on this site</p>`:"");
+  const items=(d.news||[]).slice(0,5);
+  const nws=items.length?items.map(n=>`<a class="nwi" href="${esc(n.u)}" target="_blank" rel="noopener"><span class="nh">${esc(n.h)}</span><span class="m">${n.k==="game"?'<span class="tg gm">Game</span>':n.t?`<span class="tg">${esc(n.t)}</span>`:""}${esc(agoTxt(n.p))}</span></a>`).join(""):`<p class="none">No recent headlines.</p>`;
+  return `<div class="panel"><h3>Injuries<span class="upd">${d.updated?"Updated "+esc(agoTxt(d.updated)):""}</span></h3><div class="nsec">${injHtml}</div><h3>Latest</h3><div class="nsec">${nws}</div><div class="src">From ESPN. Headlines open on espn.com.</div></div>`;
+}
+
 let slateByTeam={};
 function buildSlateIndex(){slateByTeam={};D.slate.forEach(g=>{slateByTeam[g.away]={g,opp:g.home,home:false};slateByTeam[g.home]={g,opp:g.away,home:true}})}
 buildSlateIndex();
@@ -1489,9 +1570,9 @@ function matchHead(g,pick){
 }
 function renderPlayers(){
   if(!state.pgame){state.pgame=(D.slate.find(g=>!g.final)||D.slate[0]).id}
-  $("#view").innerHTML=`<div class="grid"><aside class="rail" aria-label="This week's games">${gameCards(state.pgame)}</aside><div id="detail"></div></div>`;
+  $("#view").innerHTML=`<div class="grid g3"><aside class="rail" aria-label="This week's games">${gameCards(state.pgame)}</aside><div id="detail"></div><aside id="news" class="news" aria-label="Injuries and news"></aside></div>`;
   $(".rail").addEventListener("click",e=>{const b=e.target.closest("[data-g]");if(!b)return;state.pgame=b.dataset.g;state.popen=null;renderPlayers();if(innerWidth<=900)$("#detail").scrollIntoView({behavior:"smooth",block:"start"})});
-  renderPropBoard();
+  renderPropBoard();renderNews(D.slate.find(x=>x.id===state.pgame));
 }
 function renderPropBoard(){
   const g=D.slate.find(x=>x.id===state.pgame);
