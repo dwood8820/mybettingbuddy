@@ -1169,7 +1169,7 @@ function lineChart(games,series,line,opt={}){
   s+=`<line class="xh" x1="0" x2="0" y1="${Tp}" y2="${H-B}" visibility="hidden"/>`;
   // end labels, de-collided
   const ends=[];
-  if(line!=null){s+=`<line class="ln" x1="${L}" x2="${W-R}" y1="${y(line)}" y2="${y(line)}"/>`;ends.push({y:y(line),t:(opt.lineName||"Line")+" "+f(line),c:COL.line})}
+  if(line!=null){s+=`<line class="ln" x1="${L}" x2="${W-R}" y1="${y(line)}" y2="${y(line)}"/>`;ends.push({y:y(line),t:opt.lineLabel||(opt.lineName||"Line")+" "+f(line),c:COL.line})}
   series.forEach(se=>{
     if(se.off)return;
     const pts=se.vals.map((v,i)=>v==null?null:[x(i),y(v)]);
@@ -1265,7 +1265,6 @@ function gameTotalView(g){
   return {games:xg,series,line,opt,html:`<section class="side" data-team="game">
     <div class="side-h">${chip(g.away)}${chip(g.home)}<h3>${esc(T[g.away].nick)} + ${esc(T[g.home].nick)} scoring</h3><span class="tag fav">Game total ${f2(line)}</span></div>
     <div class="rec"><span>${esc(T[g.away].nick)} PPG <b class="num">${fx(avg(A.map(x=>x.pf)))}</b></span><span>${esc(T[g.home].nick)} PPG <b class="num">${fx(avg(H.map(x=>x.pf)))}</b></span><span>Favorite <b>${esc(T[fav].nick)}</b></span></div>
-    <div class="cap">Both teams' scoring added together, ${UNIT()} by ${UNIT()} · O/U ${f2(line)}</div>
     ${ctl}
     <div class="chart c-line">${weeks.length?lineChart(xg,series,line,opt):'<div class="empty">No games played yet</div>'}</div>
     <div class="cap">Projected totals vs ${f2(line)}</div>
@@ -1292,7 +1291,6 @@ function totalSide(ab,exp,g){
   return {key,games,series,line,opt,html:`<section class="side" data-team="${ab}">
     <div class="side-h">${chip(ab)}<h3>${esc(T[ab].name)}</h3><span class="tag fav">${lab} ${f2(line)}</span></div>
     <div class="rec">${games.some(x=>x.tot!=null)?`<span>${mode==="game"?"Overs":"Team total overs"} <b class="num">${ou[0]}-${ou[1]}${ou[2]?"-"+ou[2]:""}</b></span>`:""}<span>PPG <b class="num">${fx(pf)}</b></span><span>Opp PPG <b class="num">${fx(pa)}</b></span><span>Avg game total <b class="num">${fx(avg(games.map(x=>x.pf+x.pa)))}</b></span></div>
-    <div class="cap">${mode==="game"?"Combined points in "+esc(T[ab].nick)+" games by "+UNIT()+" · O/U "+fx(line):esc(T[ab].nick)+" points scored by "+UNIT()+" · implied team total "+f2(line)}</div>
     ${controls(key,S,defWL,defHA)}
     <div class="chart c-line">${games.length?lineChart(games,series,line,opt):'<div class="empty">No games played yet</div>'}</div>
     <div class="cap">Season splits vs ${f2(line)}</div>
@@ -1309,16 +1307,15 @@ function teamSide(ab,exp,g){
   const ats=games.reduce((a,x)=>{if(x.exp==null)return a;if(x.m>x.exp)a[0]++;else if(x.m<x.exp)a[1]++;else a[2]++;return a},[0,0,0]);
   const w=games.filter(x=>x.res==="W").length,l=games.filter(x=>x.res==="L").length;
   const pf=avg(games.map(x=>x.pf)),pa=avg(games.map(x=>x.pa));
-  const needs=exp>0?`needs to win by ${fx(exp)}+`:exp<0?`can lose by up to ${fx(-exp)}`:"needs to win";
-  const opt={signed:true,lineName:"Needs",aria:`${T[ab].nick} point differential by ${UNIT()}`,score:x=>`${x.pf}–${x.pa}`,
+  const covers=exp>0?`Covers: win by ${Math.floor(exp)+1}+`:exp<0&&Math.ceil(-exp)-1>0?`Covers: lose by ≤${Math.ceil(-exp)-1}`:"Covers: win";
+  const opt={signed:true,lineName:"Needs",lineLabel:covers,aria:`${T[ab].nick} point differential by ${UNIT()}`,score:x=>`${x.pf}–${x.pa}`,
     gameLine:x=>x.exp==null?"":`that week's line ${lineTxt(-x.exp)}`};
   return {key,games,series,exp,opt,html:`<section class="side" data-team="${ab}">
     <div class="side-h">${chip(ab)}<h3>${esc(T[ab].name)}</h3><span class="tag ${exp>0?"fav":"dog"}">${exp>0?"Favorite":exp<0?"Underdog":"Pick'em"} ${lineTxt(line)}</span></div>
     <div class="rec"><span>Record <b class="num">${w}-${l}</b></span>${games.some(x=>x.exp!=null)?`<span>ATS <b class="num">${ats[0]}-${ats[1]}${ats[2]?"-"+ats[2]:""}</b></span>`:""}<span>PPG <b class="num">${fx(pf)}</b></span><span>Opp PPG <b class="num">${fx(pa)}</b></span></div>
-    <div class="cap">Point differential by ${UNIT()} · ${lineTxt(line)} ${needs}</div>
     ${controls(key,S,defWL,defHA)}
     <div class="chart c-line">${games.length?lineChart(games,series,exp,opt):'<div class="empty">No games played yet</div>'}</div>
-    <div class="cap">Season splits vs ${sgn(exp)}</div>
+    <div class="cap">Season splits vs ${lineTxt(-exp)}</div>
     ${splitTiles(games,x=>x.m,exp,true)}
   </section>`};
 }
