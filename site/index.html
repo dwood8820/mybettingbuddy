@@ -1056,10 +1056,10 @@ function splits(games,val){
   const pick=f=>games.filter(f).map(val);
   return [
     {k:"Average",v:pick(()=>1)},
-    {k:"Home",v:pick(g=>g.home)},
-    {k:"Away",v:pick(g=>!g.home)},
-    {k:"In wins",v:pick(g=>g.res==="W")},
-    {k:"In losses",v:pick(g=>g.res==="L")},
+    {k:"At home",v:pick(g=>g.home)},
+    {k:"On the road",v:pick(g=>!g.home)},
+    {k:"In a win",v:pick(g=>g.res==="W")},
+    {k:"In a loss",v:pick(g=>g.res==="L")},
   ].map(s=>({label:s.k,n:s.v.length,val:avg(s.v)}));
 }
 
@@ -1134,13 +1134,13 @@ function runAvg(games,val,pred){let s=0,n=0;return games.map(g=>{if(pred(g)){s+=
 function buildSeries(games,val,wl,ha){
   return [
     {k:"act",name:"Result",color:COL.act,w:2.5,dots:true,vals:games.map(val)},
-    {k:"avg",name:"Season avg",color:COL.avg,w:2,vals:runAvg(games,val,()=>true)},
-    {k:"wl",name:wl==="W"?"Avg in wins":"Avg in losses",color:COL.wl,w:2,dash:"",vals:runAvg(games,val,g=>g.res===wl)},
-    {k:"ha",name:ha==="H"?"Avg at home":"Avg on road",color:COL.ha,w:2,vals:runAvg(games,val,g=>ha==="H"?g.home:!g.home)},
+    {k:"avg",name:"Average",color:COL.avg,w:2,vals:runAvg(games,val,()=>true)},
+    {k:"wl",name:wl==="W"?"In a win":"In a loss",color:COL.wl,w:2,dash:"",vals:runAvg(games,val,g=>g.res===wl)},
+    {k:"ha",name:ha==="H"?"At home":"On the road",color:COL.ha,w:2,vals:runAvg(games,val,g=>ha==="H"?g.home:!g.home)},
   ];
 }
 function lineChart(games,series,line,opt={}){
-  const W=620,H=270,L=44,R=112,Tp=18,B=42;
+  const W=620,H=270,L=44,R=150,Tp=18,B=42;
   const all=series.flatMap(s=>s.vals).concat(line==null?[]:[line]).filter(v=>v!=null);
   const dmin=Math.min(...all);let lo=dmin,hi=Math.max(...all);if(opt.signed){lo=Math.min(lo,0);hi=Math.max(hi,0)}
   if(hi===lo){hi=lo+1;lo=Math.max(0,lo-1)}const pad=(hi-lo)*.12;hi+=pad;lo-=pad;
@@ -1173,7 +1173,7 @@ function lineChart(games,series,line,opt={}){
   s+=games.map((g,i)=>{const x0=n===1?L:(i===0?L:(x(i-1)+x(i))/2),x1=n===1?W-R:(i===n-1?W-R:(x(i)+x(i+1))/2);return `<rect class="hit" data-i="${i}" x="${x0}" y="${Tp}" width="${x1-x0}" height="${H-Tp-B}"/>`}).join("");
   return s+`</svg>`;
 }
-const shortName=n=>({"Result":"result","Season avg":"avg","Avg in wins":"wins","Avg in losses":"losses","Avg at home":"home","Avg on road":"road","Weekly sum":"sum","Fav wins":"fav wins","Upset":"upset","Venues":"venues","Swapped":"swapped"}[n]||"");
+const shortName=n=>({"Result":"result","Average":"average","In a win":"in a win","In a loss":"in a loss","At home":"at home","On the road":"on the road","Combined":"combined","If the favorite wins":"if favorite wins","In an upset":"in an upset","At these venues":"at these venues","Venues swapped":"venues swapped"}[n]||"");
 function wireLine(root,games,series,line,opt,xfn){
   const svg=root.querySelector("svg");if(!svg)return;const xh=svg.querySelector(".xh");const f=v=>v==null?"—":opt.signed?sgn(v):fx(v);
   svg.querySelectorAll(".hit").forEach(r=>{const i=+r.dataset.i;const g=games[i];
@@ -1185,14 +1185,14 @@ function wireLine(root,games,series,line,opt,xfn){
         (line!=null?`<br><span class="mut">${opt.lineName||"Line"} ${f(line)}${opt.gameLine?" · "+opt.gameLine(g):""}</span>`:""),e)};
     r.addEventListener("mousemove",show);r.addEventListener("click",show);r.addEventListener("mouseleave",()=>{hideTip();xh.setAttribute("visibility","hidden")})});
 }
-function xFor(n){const W=620,L=44,R=112,pw=W-L-R;return i=>n===1?L+pw/2:L+18+(pw-36)*i/(n-1)}
+function xFor(n){const W=620,L=44,R=150,pw=W-L-R;return i=>n===1?L+pw/2:L+18+(pw-36)*i/(n-1)}
 function controls(key,s,defWL,defHA){
   const b=(grp,v,lab,c)=>`<button data-k="${key}" data-g="${grp}" data-v="${v}" aria-pressed="${s[grp]===v}">${lab}${(grp==="wl"?defWL:defHA)===v?' <span class="def">'+(UNIT()==="game"?"tonight":"this week")+'</span>':""}</button>`;
   return `<div class="ctl">
     <span class="lg"><i style="background:${COL.act}"></i>Result</span>
-    <span class="lg"><i style="background:${COL.avg}"></i>Season avg</span>
-    <span class="tg"><i style="background:${COL.wl}"></i><span class="seg2">${b("wl","W","Wins")}${b("wl","L","Losses")}</span></span>
-    <span class="tg"><i style="background:${COL.ha}"></i><span class="seg2">${b("ha","H","Home")}${b("ha","A","Away")}</span></span>
+    <span class="lg"><i style="background:${COL.avg}"></i>Average</span>
+    <span class="tg"><i style="background:${COL.wl}"></i><span class="seg2">${b("wl","W","In a win")}${b("wl","L","In a loss")}</span></span>
+    <span class="tg"><i style="background:${COL.ha}"></i><span class="seg2">${b("ha","H","At home")}${b("ha","A","On the road")}</span></span>
     <span class="lg"><i class="dl"></i>${UNIT()==="game"?"Tonight's":"This week's"} line</span>
   </div>`;
 }
@@ -1221,30 +1221,30 @@ function gameTotalView(g){
   const script=up=>w=>sum2(ppg(tg(fav),w,x=>x.res===(up?"L":"W")),ppg(tg(dog),w,x=>x.res===(up?"W":"L")));
   const actual=weeks.map(w=>{const a=A.find(x=>x.wk===w),h=H.find(x=>x.wk===w);return a&&h?a.pf+h.pf:null});
   const series=[
-    {k:"act",name:"Weekly sum",color:COL.act,w:2.5,dots:true,vals:actual},
-    {k:"avg",name:"Season avg",color:COL.avg,w:2,vals:weeks.map(w=>sum2(ppg(A,w,all),ppg(H,w,all)))},
-    {k:"wl",name:S.wl==="W"?"Fav wins":"Upset",color:COL.wl,w:2,vals:weeks.map(script(S.wl!=="W"))},
-    {k:"ha",name:S.ha==="H"?"Venues":"Swapped",color:COL.ha,w:2,vals:weeks.map(venue(S.ha!=="H"))},
+    {k:"act",name:"Combined",color:COL.act,w:2.5,dots:true,vals:actual},
+    {k:"avg",name:"Average",color:COL.avg,w:2,vals:weeks.map(w=>sum2(ppg(A,w,all),ppg(H,w,all)))},
+    {k:"wl",name:S.wl==="W"?"If the favorite wins":"In an upset",color:COL.wl,w:2,vals:weeks.map(script(S.wl!=="W"))},
+    {k:"ha",name:S.ha==="H"?"At these venues":"Venues swapped",color:COL.ha,w:2,vals:weeks.map(venue(S.ha!=="H"))},
   ];
   const last=s=>s.vals.filter(v=>v!=null).slice(-1)[0]??null;
   const W=weeks[weeks.length-1];
   const cnt=(ab,pred)=>tg(ab).filter(pred).length;
   const tiles=[
-    ["Season avg",sum2(ppg(A,W,all),ppg(H,W,all)),`${cnt(g.away,all)}+${cnt(g.home,all)}g`,`${g.away} PPG + ${g.home} PPG`],
-    ["Venues",venue(false)(W),`${cnt(g.away,x=>!x.home)}+${cnt(g.home,x=>x.home)}g`,`${g.away} on road + ${g.home} at home`],
-    ["Swapped venues",venue(true)(W),`${cnt(g.away,x=>x.home)}+${cnt(g.home,x=>!x.home)}g`,`${g.away} at home + ${g.home} on road`],
-    ["Fav wins",script(false)(W),`${cnt(fav,x=>x.res==="W")}+${cnt(dog,x=>x.res==="L")}g`,`${fav} in wins + ${dog} in losses`],
-    ["Upset",script(true)(W),`${cnt(fav,x=>x.res==="L")}+${cnt(dog,x=>x.res==="W")}g`,`${fav} in losses + ${dog} in wins`],
+    ["Average",sum2(ppg(A,W,all),ppg(H,W,all)),`${cnt(g.away,all)}+${cnt(g.home,all)}g`,`${g.away} PPG + ${g.home} PPG`],
+    ["At these venues",venue(false)(W),`${cnt(g.away,x=>!x.home)}+${cnt(g.home,x=>x.home)}g`,`${g.away} on road + ${g.home} at home`],
+    ["Venues swapped",venue(true)(W),`${cnt(g.away,x=>x.home)}+${cnt(g.home,x=>!x.home)}g`,`${g.away} at home + ${g.home} on road`],
+    ["If the favorite wins",script(false)(W),`${cnt(fav,x=>x.res==="W")}+${cnt(dog,x=>x.res==="L")}g`,`${fav} in wins + ${dog} in losses`],
+    ["In an upset",script(true)(W),`${cnt(fav,x=>x.res==="L")}+${cnt(dog,x=>x.res==="W")}g`,`${fav} in losses + ${dog} in wins`],
   ];
   const line=g.total;
   const tileHtml=`<div class="tiles">${tiles.map(([l,v,n,how])=>{const st=v==null?"":v>line?"O":v<line?"U":"P";
     return `<div class="tile" title="${esc(how)}"><span>${l}</span><b class="num">${v==null?"—":f2(v)}</b><em class="${st}">${v==null?"not enough games":(st==="O"?"▲ ":st==="U"?"▼ ":"")+f2(Math.abs(v-line))+(st==="O"?" over":st==="U"?" under":" push")+" · "+n}</em><small>${esc(how)}</small></div>`}).join("")}</div>`;
   const b=(grp,v,lab)=>`<button data-k="${key}" data-g="${grp}" data-v="${v}" aria-pressed="${S[grp]===v}">${lab}${v===(grp==="wl"?"W":"H")?' <span class="def">'+(UNIT()==="game"?"tonight":"this week")+'</span>':""}</button>`;
   const ctl=`<div class="ctl">
-    <span class="lg"><i style="background:${COL.act}"></i>Weekly sum</span>
-    <span class="lg"><i style="background:${COL.avg}"></i>Season avg</span>
-    <span class="tg"><i style="background:${COL.wl}"></i><span class="seg2">${b("wl","W",esc(T[fav].nick)+" win")}${b("wl","L","Upset")}</span></span>
-    <span class="tg"><i style="background:${COL.ha}"></i><span class="seg2">${b("ha","H","This game's venues")}${b("ha","A","Swapped")}</span></span>
+    <span class="lg"><i style="background:${COL.act}"></i>Combined</span>
+    <span class="lg"><i style="background:${COL.avg}"></i>Average</span>
+    <span class="tg"><i style="background:${COL.wl}"></i><span class="seg2">${b("wl","W","If "+esc(T[fav].nick)+" win")}${b("wl","L","In an upset")}</span></span>
+    <span class="tg"><i style="background:${COL.ha}"></i><span class="seg2">${b("ha","H","At these venues")}${b("ha","A","Venues swapped")}</span></span>
     <span class="lg"><i class="dl"></i>Game Total</span></div>`;
   const opt={lineName:"O/U",aria:"Projected game total by "+UNIT(),sub:x=>"",
     head:(x,i)=>`<b>Through week ${x.wk}</b>`};
