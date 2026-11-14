@@ -574,13 +574,16 @@ table.log td.r,table.log th.r{text-align:right}
 
 <script>
 window.startApp=function(MBB){
-if(MBB.nba&&MBB.nba.pkeys&&!MBB.nba._expanded){const K=MBB.nba.pkeys;MBB.nba._expanded=true;
-  MBB.nba.players.forEach(p=>{p.g=p.g.map(r=>({wk:r[0],lbl:r[1],opp:r[2],home:!!r[3],res:r[4],s:Object.fromEntries(K.slice(5).map((k,i)=>[k,r[5+i]]))}))})}
-const DATA={nfl:MBB.nfl,ncaaf:MBB.ncaaf||null,nba:MBB.nba||null,ncaab:MBB.ncaab||null};
-const LIVE=["nfl"].concat(MBB.ncaaf?["ncaaf"]:[],MBB.nba?["nba"]:[],MBB.ncaab||(MBB.get&&!MBB.embedded)?["ncaab"]:[]);           // sports with real data; the rest show the under-construction screen
-let D=DATA.nfl, T=D.teams;
+// compact player logs (NBA) are expanded once, whenever a league's file arrives
+const prepData=d=>{if(d&&d.pkeys&&!d._expanded){const K=d.pkeys;d._expanded=true;
+  d.players.forEach(p=>{p.g=p.g.map(r=>({wk:r[0],lbl:r[1],opp:r[2],home:!!r[3],res:r[4],s:Object.fromEntries(K.slice(5).map((k,i)=>[k,r[5+i]]))}))})}return d};
 const SPORTS=[["nfl","NFL"],["ncaaf","NCAAF"],["nba","NBA"],["ncaab","NCAAB"]];
-const state={sport:"nfl",view:"games",game:null,player:null,pos:"ALL",q:"",gameFilter:"ALL",market:null,line:null};
+// the live site downloads only the league you open first; the others load when you switch to them
+const DATA={nfl:prepData(MBB.nfl)||null,ncaaf:prepData(MBB.ncaaf)||null,nba:prepData(MBB.nba)||null,ncaab:prepData(MBB.ncaab)||null};
+const LIVE=SPORTS.map(s=>s[0]).filter(k=>DATA[k]||(MBB.get&&!MBB.embedded)); // sports with real data; the rest show the under-construction screen
+const START=DATA[MBB.start]?MBB.start:SPORTS.map(s=>s[0]).find(k=>DATA[k]);
+let D=DATA[START], T=D.teams;
+const state={sport:START,view:"games",game:null,player:null,pos:"ALL",q:"",gameFilter:"ALL",market:null,line:null};
 const $=s=>document.querySelector(s);
 let _phone=innerWidth<600;addEventListener("resize",()=>{const p=innerWidth<600;if(p!==_phone){_phone=p;try{render()}catch(_){}}});
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -674,7 +677,7 @@ function renderTool(k){
   </section>`;
   const need=k==="ou_splicer"||k==="ats_splicer"?["graphs",useGraphs,GCTX,buildGraphCtx,"_ou_hist.json"]:k==="prop_splicer"?["props",usePP,PPCTX,buildPPCtx,"_pp_hist.json"]:null;
   if(need&&!need[1](state.sport)){
-    const sp=state.sport,file=sp+need[4];
+    const sp=state.sport,file=sp==="nfl"?need[4].slice(1):sp+need[4]; // NFL history files predate the per-league names
     if(!MBB.get){$("#toolBody").innerHTML=ucBlock("This graph");return}
     $("#toolBody").innerHTML='<div class="loading" role="status"><span class="spin" aria-hidden="true"></span>Loading past games…</div>';
     MBB.get(file).then(raw=>{need[2][sp]=need[3](sp,raw);if(state.sport===sp&&state.view===k)renderTool(k)})
@@ -1013,8 +1016,6 @@ function buildGraphCtx(k,raw){
   return C}
 function useGraphs(k){const C=GCTX[k];if(!C)return false;({OUHRAW,OUH,OU_SEASONS,OU_F,OU,ATSR,ATS_F,ATS,spB,tlB}=C);return true}
 const sportTeams=()=>Object.keys(T).sort((a,b)=>T[a].name.localeCompare(T[b].name));
-GCTX.nfl=buildGraphCtx("nfl",MBB.ou);useGraphs("nfl");
-PPCTX.nfl=buildPPCtx("nfl",MBB.pp);usePP("nfl");
 function atsPerspective(){return ATS.team||ATS.f.role.size||ATS.f.loc.size}
 function atsFiltered(skip){const persp=atsPerspective();
   return ATSR.filter(r=>{if(!ATS.seasons.has(r.s))return false;if(ATS.team&&r.tm!==ATS.team)return false;
@@ -1448,7 +1449,7 @@ function buildSlateIndex(){slateByTeam={};D.slate.forEach(g=>{slateByTeam[g.away
 buildSlateIndex();
 function setSport(k){state.sport=k;
   if(!DATA[k]&&LIVE.includes(k)&&MBB.get){$("#main").innerHTML='<div class="loading" role="status"><span class="spin" aria-hidden="true"></span>Loading…</div>';
-    MBB.get(k+".json").then(d=>{DATA[k]=d;if(state.sport===k){setSport(k);render()}}).catch(()=>{LIVE.splice(LIVE.indexOf(k),1);if(state.sport===k)render()});return}
+    MBB.get(k+".json").then(d=>{DATA[k]=prepData(d);if(typeof scoresFor==="function")scoresFor(k);if(state.sport===k){setSport(k);render()}}).catch(()=>{LIVE.splice(LIVE.indexOf(k),1);if(state.sport===k)render()});return}
   if(!DATA[k]||D===DATA[k])return;
   D=DATA[k];T=D.teams;buildSlateIndex();
   Object.assign(state,{game:null,team:null,pgame:null,popen:null,pmk:null,conf:"ALL"});
@@ -1737,8 +1738,9 @@ function applyScores(list,sp){let changed=false;
     if(g.final!==fin||g.clock!==clock||g.as!==as||g.hs!==hs){Object.assign(g,{final:fin,clock,as,hs});changed=true}});
   const busy=document.activeElement&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName);
   if(changed&&!busy&&state.sport===sp&&!TOOLS[state.view])render();}
+function scoresFor(sp){if(MBB.embedded)return;fetch("/api/scores?sport="+sp).then(r=>r.ok?r.json():null).then(d=>{if(d&&d.games)applyScores(d.games,sp)}).catch(()=>{})}
 function pollScores(){const now=Date.now();let soon=10*60e3;
-  LIVE.forEach(sp=>{const sl=(DATA[sp]||{}).slate||[];
+  LIVE.filter(sp=>DATA[sp]).forEach(sp=>{const sl=DATA[sp].slate||[];
     const active=sl.some(g=>!g.final&&now>kick(g).getTime()-15*60e3&&now<kick(g).getTime()+5*3600e3);if(active)soon=60e3;
     if(active||!pollScores.seen?.[sp]){(pollScores.seen||={})[sp]=1;fetch("/api/scores?sport="+sp).then(r=>r.ok?r.json():null).then(d=>{if(d&&d.games)applyScores(d.games,sp)}).catch(()=>{})}});
   setTimeout(pollScores,soon)}if(!MBB.embedded)pollScores();
@@ -1748,13 +1750,17 @@ function pollScores(){const now=Date.now();let soon=10*60e3;
 /* data loader: the preview build embeds a snapshot; the live site loads the latest data files */
 (function(){
   const EMBED=__EMBED__, BASE="__DATA_BASE__";
-  if(EMBED){EMBED.embedded=true;EMBED.get=f=>EMBED.files&&EMBED.files[f]?Promise.resolve(EMBED.files[f]):Promise.reject(new Error(f));startApp(EMBED);return}
+  if(EMBED){EMBED.embedded=true;EMBED.files=Object.assign({"ou_hist.json":EMBED.ou,"pp_hist.json":EMBED.pp},EMBED.files);EMBED.get=f=>EMBED.files&&EMBED.files[f]?Promise.resolve(EMBED.files[f]):Promise.reject(new Error(f));startApp(EMBED);return}
   const main=document.getElementById("main");
   main.innerHTML='<div class="loading" role="status"><span class="spin" aria-hidden="true"></span>Loading the latest lines and stats…</div>';
   const bust=Math.floor(Date.now()/300000);
   const get=f=>fetch(BASE+f+"?v="+bust).then(r=>{if(!r.ok)throw new Error(f+" "+r.status);return r.json()});
-  Promise.all(["nfl.json","ou_hist.json","pp_hist.json"].map(get).concat(get("ncaaf.json").catch(()=>null),get("nba.json").catch(()=>null)))
-    .then(([nfl,ou,pp,ncaaf,nba])=>startApp({nfl,ou,pp,ncaaf,nba,td:{},wx:{},get}))
+  // only fetch the league this visitor opens first (from the link, or the one they used last time)
+  const LG=["nfl","ncaaf","nba","ncaab"];let s="";try{s=decodeURIComponent(location.hash.slice(1))}catch(_){}
+  if(!LG.includes(s.split("/")[0])){try{s=localStorage.getItem("mbb_last")||""}catch(_){}}
+  let start=s.split("/")[0];if(!LG.includes(start))start="nfl";
+  get(start+".json").catch(()=>start==="nfl"?Promise.reject():get((start="nfl")+".json"))
+    .then(d=>startApp({[start]:d,start,td:{},wx:{},get}))
     .catch(()=>{main.innerHTML='<div class="empty" role="alert">Couldn\'t load the latest data. <button class="btn" onclick="location.reload()">Try again</button></div>'});
 })();
 </script>
