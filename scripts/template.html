@@ -128,6 +128,30 @@ button{font:inherit;color:inherit}
 .sit-note{font-size:11.5px;color:var(--muted);margin:8px 0 0}
 .sit-key{display:inline-block;width:10px;height:10px;background:rgba(244,193,79,.25);box-shadow:inset 3px 0 0 var(--gold);margin-right:6px;vertical-align:-1px}
 @media (max-width:600px){.sit{padding:14px 12px}.sit-t{font-size:12.5px}.sit-t td .sv{margin-right:4px}.sit-t td,.sit-t th{padding-inline:6px}}
+.ftd{padding:16px 20px 14px;border-top:1px solid var(--line)}
+.ftd .sit-h{align-items:center}
+.ftd .sit-h>span{flex:1 1 320px}
+.ftd-seg{margin-left:auto}
+.ftd-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;margin-top:6px}
+.ftd-side{min-width:0}
+.ftd-t{display:flex;align-items:center;gap:8px;margin-bottom:2px}
+.ftd-t b{display:block;font-size:14px}.ftd-t small{display:block;font-size:11.5px;color:var(--muted)}
+.ftdc{width:100%;height:auto;display:block}
+.ftdc .fb rect{fill:#4A5468}
+.ftdc .fb.hot rect{fill:var(--accent)}
+.ftdc .fb .zl{stroke:#4A5468;stroke-width:2}
+.ftdc .fv{font:700 12px var(--body);fill:#fff}
+.ftdc .fr{font:800 11.5px var(--body);fill:var(--soft)}
+.ftdc .fb.hot .fr{fill:#FF7A88}
+.ftdc .fb.zero .fr{fill:var(--muted);font-weight:600}
+.ftd-sum{font-size:12.5px;color:var(--muted);margin:4px 0 4px}
+.ftd-sum b{color:var(--text)}
+.ftd-log{list-style:none;margin:0;padding:0;font-size:12.5px}
+.ftd-log li{padding:4px 0;border-top:1px solid var(--line);display:flex;gap:8px;align-items:baseline}
+.ftd-log li span{color:var(--muted);font-size:11.5px;min-width:44px}
+.ftd-log em{font-style:normal;color:var(--muted);font-size:11.5px;margin-left:auto}
+.ftd-key{display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--accent);margin-right:6px;vertical-align:-1px}
+@media (max-width:700px){.ftd-grid{grid-template-columns:minmax(0,1fr)}.ftd{padding:14px 12px}}
 .mvrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;padding:9px 18px;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--muted);background:rgba(255,255,255,.015)}
 .mvrow .mv-h{font-size:10.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gold)}
 .mvrow em{font-style:normal;color:var(--soft);font-weight:600;margin-right:3px}
@@ -1450,6 +1474,7 @@ function renderGameDetail(){
     ${ou?`<div class="ctlbar ou3">${mseg}</div>`:""}
     <div class="two">${S.html}</div>
     ${sitHtml(g,ou)}
+    ${ftdHtml(g)}
     ${rgLine()}
   </div>`;
   const sec=$("#detail section.side");const c=sec.querySelector(".c-line svg");
@@ -1670,6 +1695,53 @@ function matchHead(g,pick){
     </div>${moveRow(g)}`;
 }
 
+/* ---------- first touchdown: who scores the game's first TD against each defense, by position (NFL) ---------- */
+const FTD_POS=[["QB","QB"],["RB","RB"],["WR","WR"],["TE","TE"],["DST","D/ST"],["OTH","Other"]];
+function ftdScope(){const F=D.ftd||{},ys=Object.keys(F).sort(),cur=ys[ys.length-1];
+  const two=state.ftdScope==="two"&&ys.length>1,use=two?ys.slice(-2):[cur];
+  const c={},gp={},log={};
+  use.forEach(y=>{const s=F[y];Object.keys(s.c).forEach(t=>{c[t]=c[t]||{};FTD_POS.forEach(([p])=>c[t][p]=(c[t][p]||0)+(s.c[t][p]||0));gp[t]=(gp[t]||0)+(s.gp[t]||0);
+    log[t]=(log[t]||[]).concat((s.log[t]||[]).map(r=>[+y].concat(r)))})});
+  // rank defenses on first touchdowns only: #1 = most first TDs allowed to that position
+  const rk={},tie={};FTD_POS.forEach(([p])=>{Object.keys(c).forEach(t=>{const v=c[t][p];rk[t]=rk[t]||{};tie[t]=tie[t]||{};
+    rk[t][p]=1+Object.keys(c).filter(o=>c[o][p]>v).length;tie[t][p]=Object.keys(c).filter(o=>o!==t&&c[o][p]===v).length>0})});
+  return {c,gp,log,rk,tie,n:Object.keys(c).length,two,cur,thru:(F[cur]||{}).thru,label:two?`${use[0]}–${String(use[1]).slice(-2)}`:sShort?sShort(cur):cur};
+}
+function ftdChart(def,opp,S,pos,top){
+  const W=300,H=200,L=26,R=6,Tp=26,B=26,pw=W-L-R,ph=H-Tp-B,c=S.c[def]||{},n=pos.length,bw=Math.min(40,pw/n*0.62);
+  const ticks=niceTicks(0,Math.max(top,1),Math.min(4,Math.max(top,1)));const hi=Math.max(ticks[ticks.length-1],1);
+  const y=v=>Tp+ph-(v/hi)*ph;
+  let s=ticks.filter(t=>Number.isInteger(t)).map(t=>`<line class="grid" x1="${L}" x2="${W-R}" y1="${y(t)}" y2="${y(t)}"/><text class="axl" x="${L-6}" y="${y(t)+4}" text-anchor="end">${t}</text>`).join("");
+  pos.forEach(([p,lab],i)=>{const v=c[p]||0,cx=L+pw*(i+.5)/n,x=cx-bw/2,top=y(v),h=Y0()-top,r=S.rk[def][p],hot=v>0&&r<=5;
+    const rTxt=(S.tie[def][p]?"T":"")+"#"+r;
+    s+=`<g class="fb${hot?" hot":""}${v?"":" zero"}"><title>${esc(T[def].nick)} have allowed ${v} first TD${v===1?"":"s"} to ${lab==="D/ST"?"a defense or special teams":lab+"s"} · ${S.tie[def][p]?"tied ":""}#${r} of ${S.n} defenses</title>
+      ${v?`<rect x="${x}" y="${top}" width="${bw}" height="${h}" rx="4"/>`:`<line class="zl" x1="${x}" x2="${x+bw}" y1="${Y0()}" y2="${Y0()}"/>`}
+      ${v&&h>=18?`<text class="fv" x="${cx}" y="${top+14}" text-anchor="middle">${v}</text>`:""}
+      <text class="fr" x="${cx}" y="${top-7}" text-anchor="middle">${rTxt}</text>
+      <text class="axl" x="${cx}" y="${H-8}" text-anchor="middle">${lab}</text></g>`});
+  function Y0(){return Tp+ph}
+  return `<svg class="chart ftdc" viewBox="0 0 ${W} ${H}" role="img" aria-label="First touchdowns allowed by the ${esc(T[def].nick)} defense, by position">${s}</svg>`;
+}
+function ftdHtml(g){
+  if(state.sport!=="nfl"||!D.ftd||!Object.keys(D.ftd).length)return"";
+  const S=ftdScope();
+  const pos=FTD_POS.filter(([p])=>p!=="OTH"||[g.away,g.home].some(t=>(S.c[t]||{}).OTH));
+  const top=Math.max(1,...[g.away,g.home].flatMap(t=>pos.map(([p])=>(S.c[t]||{})[p]||0)));
+  const side=(def,opp)=>{const L=(S.log[def]||[]).slice().sort((a,b)=>b[0]-a[0]||b[1]-a[1]),allowed=L.length,gp=S.gp[def]||0;
+    const recent=L.slice(0,4).map(r=>`<li><span class="num">${S.two?`’${String(r[0]).slice(-2)} `:""}Wk ${r[1]}</span> ${esc(r[3])} <em>${r[4]==="DST"?"D/ST":r[4]} · ${esc(r[2])}</em></li>`).join("");
+    return `<div class="ftd-side"><div class="ftd-t">${chip(def)}<div><b>${esc(T[def].nick)} defense</b><small>vs the ${esc(T[opp].nick)} offense this game</small></div></div>
+      ${ftdChart(def,opp,S,pos,top)}
+      <p class="ftd-sum">Allowed the game's first TD in <b>${allowed}</b> of ${gp} games</p>
+      ${recent?`<ul class="ftd-log">${recent}</ul>`:""}</div>`};
+  const btn=(v,l)=>`<button data-ftd="${v}" aria-pressed="${(state.ftdScope==="two")===(v==="two")}">${l}</button>`;
+  const ys=Object.keys(D.ftd).sort();
+  return `<div class="ftd" id="ftd"><div class="sit-h"><h3>First touchdown</h3><span>The game's first TD, by the scorer's position, against each defense. Rank vs all ${S.n} defenses on first TDs only (#1 = most allowed).</span>
+    ${ys.length>1?`<div class="seg ftd-seg" role="group" aria-label="Seasons">${btn("one","This season")}${btn("two","Last 2 seasons")}</div>`:""}</div>
+    <div class="ftd-grid">${side(g.away,g.home)}${side(g.home,g.away)}</div>
+    <p class="sit-note"><i class="ftd-key"></i>Top 5 most allowed · Through week ${S.thru} · From nflverse play-by-play</p></div>`;
+}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-ftd]");if(!b)return;state.ftdScope=b.dataset.ftd;
+  const g=D.slate.find(x=>x.id===(state.view==="players"?state.pgame:state.game)),box=$("#ftd");if(g&&box)box.outerHTML=ftdHtml(g)});
 /* ---------- situational trends: both teams' record this season by rest, last result and role ---------- */
 const dayN=s=>s?Math.round(Date.parse(s+"T12:00:00Z")/864e5):null;
 function teamLog(ab){return (D.tg[ab]||[]).map((x,i)=>({...x,i})).sort((a,b)=>(a.d&&b.d?a.d.localeCompare(b.d):0)||a.i-b.i)}
@@ -1767,6 +1839,7 @@ function renderPropBoard(){
     ${m.td?`<div class="onote">${oddsNote}</div>`:""}
     <div class="phead"><span>Player</span>${m.td?"<span>Odds</span><span>Implied</span><span>Scored</span>":"<span>Line<em>sample</em></span><span>Avg</span><span>Over</span>"}<span></span></div>
     <div class="plist">${rows||'<div class="empty">No players with enough volume yet</div>'}</div>
+    ${ftdHtml(g)}
     ${rgLine()}
   </div>`;
   $(".mtabs").addEventListener("click",e=>{const b=e.target.closest("[data-m]");if(!b)return;state.pmk=b.dataset.m;state.popen=null;renderPropBoard()});

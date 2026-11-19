@@ -16,6 +16,7 @@ from espn_moves import add_moves  # opening vs current lines
 
 GAMES_URL = "https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv"
 TEAMS_URL = "https://github.com/nflverse/nflverse-data/releases/download/teams/teams_colors_logos.csv"
+PBP_URL = "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_{}.parquet"
 PSTATS_URL = "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_{}.csv"
 KEYS = ['passing_yards','passing_tds','completions','attempts','rushing_yards','rushing_tds','carries',
         'receiving_yards','receptions','targets','receiving_tds']
@@ -133,6 +134,60 @@ def build_pp(games, pw, seasons):
     return {'p': plist, 'g': sorted(out.values(), key=lambda x: (x[0], x[1], x[3])), 'k': S}
 
 
+FTD_POS = ('QB', 'RB', 'WR', 'TE', 'DST', 'OTH')
+
+
+def build_ftd(pw, seasons):
+    """First touchdown of each game, credited against the defense it was scored on.
+
+    For every game, the first touchdown (by game clock) is attributed to the team that allowed it
+    (the scoring team's opponent) and to the scorer's position: QB, RB (incl. FB), WR, TE,
+    DST (any defensive or special-teams return TD) or OTH. Ranks compare defenses on first
+    touchdowns only: #1 = allowed the most first TDs to that position.
+    """
+    pos_of = {}
+    for r in pw[['player_id', 'position']].dropna().itertuples():
+        pos_of[r.player_id] = 'RB' if r.position in ('FB', 'HB') else r.position
+    cols = ['game_id', 'season', 'week', 'season_type', 'posteam', 'defteam', 'home_team', 'away_team',
+            'touchdown', 'td_team', 'td_player_id', 'td_player_name', 'return_touchdown', 'game_seconds_remaining']
+    out = {}
+    for y in seasons:
+        try:
+            d = pd.read_parquet(io.BytesIO(urllib.request.urlopen(PBP_URL.format(y), timeout=180).read()), columns=cols)
+        except Exception as e:  # current season file may not exist before week 1
+            print('skip pbp', y, e)
+            continue
+        d = d[d.season_type.isin(['REG', 'POST'])]
+        played = {}
+        for g in d[['game_id', 'home_team', 'away_team']].drop_duplicates('game_id').itertuples():
+            for t in (g.home_team, g.away_team):
+                played[t] = played.get(t, 0) + 1
+        td = d[(d.touchdown == 1) & d.td_team.notna()].sort_values(['game_id', 'game_seconds_remaining'], ascending=[True, False])
+        first = td.groupby('game_id').head(1)
+        cnt = {t: {p: 0 for p in FTD_POS} for t in played}
+        log = {t: [] for t in played}
+        for r in first.itertuples():
+            allowed_by = r.away_team if r.td_team == r.home_team else r.home_team
+            if r.return_touchdown == 1 or r.td_team == r.defteam:
+                pos = 'DST'
+            else:
+                pos = pos_of.get(r.td_player_id, 'OTH')
+                pos = pos if pos in FTD_POS else 'OTH'
+            cnt[allowed_by][pos] += 1
+            log[allowed_by].append([int(r.week), r.td_team, r.td_player_name or '', pos])
+        rk = {}
+        for p in FTD_POS:
+            for t in cnt:
+                rk.setdefault(t, {})[p] = 1 + sum(1 for o in cnt if cnt[o][p] > cnt[t][p])
+        ties = {p: {} for p in FTD_POS}
+        for p in FTD_POS:
+            for t in cnt:
+                ties[p][cnt[t][p]] = ties[p].get(cnt[t][p], 0) + 1
+        out[str(y)] = {'gp': played, 'c': cnt, 'rk': rk, 'tie': {p: {t: ties[p][cnt[t][p]] > 1 for t in cnt} for p in FTD_POS},
+                       'log': {t: sorted(v) for t, v in log.items()}, 'thru': int(d.week.max())}
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument('--out', default='out'); a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
@@ -146,7 +201,9 @@ def main():
         except Exception as e:  # current season file may not exist before week 1
             print('skip player stats', y, e)
     pw = pd.concat(frames)
-    files = {'nfl.json': build_current(games, teams, pw, season), 'ou_hist.json': build_ou(games, teams), 'pp_hist.json': build_pp(games, pw, seasons)}
+    cur = build_current(games, teams, pw, season)
+    cur['ftd'] = build_ftd(pw, [season - 1, season])
+    files = {'nfl.json': cur, 'ou_hist.json': build_ou(games, teams), 'pp_hist.json': build_pp(games, pw, seasons)}
     for name, obj in files.items():
         s = json.dumps(obj, separators=(',', ':'))
         open(os.path.join(a.out, name), 'w').write(s)
