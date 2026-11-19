@@ -3,7 +3,7 @@ import fs from "fs";
 const csv = await (await fetch("https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv")).text();
 const rows = csv.trim().split("\n"); const H = rows[0].split(",");
 const ix = (k) => H.indexOf(k);
-const games = rows.slice(1).map((l) => l.split(",")).filter((r) => r[ix("season")] === "2026" && r[ix("home_score")] !== "" && r[ix("home_score")] !== "NA");
+const games = rows.slice(1).map((l) => l.split(",")).filter((r) => r[ix("season")] === "2025" && r[ix("home_score")] !== "" && r[ix("home_score")] !== "NA");
 const out = {};
 for (const r of games) {
   const gid = r[ix("game_id")], ev = r[ix("espn")];
